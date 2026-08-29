@@ -1,0 +1,16 @@
+procedure_code,description,price
+J0670,Injection mepivacaine hydrochloride per 10 ml,18.40
+J2001,Injection lidocaine hydrochloride for intravenous infusion 10 mg,12.75
+J2250,Injection midazolam hydrochloride per 1 mg,9.60
+J3010,Injection fentanyl citrate 0.1 mg,7.85
+G0500,Moderate sedation services by the physician performing a GI endoscopic service,142.30
+G0151,Services of a qualified physical therapist in the home health setting each 15 minutes,58.20
+G0157,Services of a qualified physical therapist assistant in the home health setting each 15 minutes,41.05
+G0283,Electrical stimulation unattended as part of a therapy plan of care,22.15
+E0730,Transcutaneous electrical nerve stimulation device four or more leads,312.00
+S8990,Physical or manipulative therapy performed for maintenance rather than restoration,64.50
+G0403,Electrocardiogram routine ECG with 12 leads screening,26.40
+G0404,Electrocardiogram routine ECG with 12 leads tracing only,14.90
+G0405,Electrocardiogram routine ECG with 12 leads interpretation and report only,17.25
+G0166,External counterpulsation per treatment session,198.75
+E0616,Implantable cardiac event recorder with memory activator and programmer,2845.00

@@ -1,0 +1,16 @@
+code,category,description
+J0670,Anesthesia,Injection mepivacaine hydrochloride per 10 ml
+J2001,Anesthesia,Injection lidocaine hydrochloride for intravenous infusion 10 mg
+J2250,Anesthesia,Injection midazolam hydrochloride per 1 mg
+J3010,Anesthesia,Injection fentanyl citrate 0.1 mg
+G0500,Anesthesia,Moderate sedation services by the physician performing a GI endoscopic service
+G0151,PhysicalTherapy,Services of a qualified physical therapist in the home health setting each 15 minutes
+G0157,PhysicalTherapy,Services of a qualified physical therapist assistant in the home health setting each 15 minutes
+G0283,PhysicalTherapy,Electrical stimulation unattended to one or more areas as part of a therapy plan of care
+E0730,PhysicalTherapy,Transcutaneous electrical nerve stimulation device four or more leads
+S8990,PhysicalTherapy,Physical or manipulative therapy performed for maintenance rather than restoration
+G0403,Cardiac,Electrocardiogram routine ECG with 12 leads screening for initial preventive physical examination
+G0404,Cardiac,Electrocardiogram routine ECG with 12 leads tracing only
+G0405,Cardiac,Electrocardiogram routine ECG with 12 leads interpretation and report only
+G0166,Cardiac,External counterpulsation per treatment session
+E0616,Cardiac,Implantable cardiac event recorder with memory activator and programmer
