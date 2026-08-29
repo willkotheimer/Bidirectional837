@@ -1,0 +1,298 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Bidirectional 837 Translator",
+    "version": "v1",
+    "description": "Governed API surface for the bi-directional 837P generation and translation engine. This document is the authored contract required by governance.txt Section 4 ('API Contracts First'). It is committed before the controllers beneath it exist, and Governance.Api.Tests asserts that the running application conforms to it. Routes not named by governance are recorded in ADR-009."
+  },
+  "paths": {
+    "/api/v1/bills/batch-generate": {
+      "post": {
+        "tags": [ "Bills" ],
+        "operationId": "BatchGenerateBills",
+        "summary": "Generate a batch of synthetic claims (governance User Story 1.3).",
+        "description": "Generates up to 500 synthetic bills filtered by jurisdiction state and medical code category. A BillCount above 500 is rejected with 400.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BatchGenerationRequestDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The generated claims.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ClaimHeaderDto" }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "BillCount exceeds the governed maximum of 500, or the request is otherwise invalid.",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/claims": {
+      "get": {
+        "tags": [ "Claims" ],
+        "operationId": "ListClaims",
+        "summary": "List stored claims for the Imported Bills Dashboard (governance User Story 3.1).",
+        "responses": {
+          "200": {
+            "description": "All claims currently held in the ephemeral store.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ClaimHeaderDto" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/claims/{id}": {
+      "get": {
+        "tags": [ "Claims" ],
+        "operationId": "GetClaim",
+        "summary": "Retrieve a single stored claim.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The claim.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ClaimHeaderDto" }
+              }
+            }
+          },
+          "404": {
+            "description": "No claim with that identifier is held in the store.",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/claims/export-zip": {
+      "get": {
+        "tags": [ "Claims" ],
+        "operationId": "ExportClaimsZip",
+        "summary": "Download stored claims as 837 files in a ZIP archive (governance User Story 2.2).",
+        "responses": {
+          "200": {
+            "description": "A ZIP archive of ASC X12 837P files.",
+            "content": {
+              "application/zip": {
+                "schema": { "type": "string", "format": "binary" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/claims/import": {
+      "post": {
+        "tags": [ "Claims" ],
+        "operationId": "ImportClaims",
+        "summary": "Ingest an 837 file, or a ZIP archive of 837 files (governance User Story 3.1).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [ "file" ],
+                "properties": {
+                  "file": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The claims reconstructed from the uploaded payload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ClaimHeaderDto" }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload is absent, empty, or not valid 837 content.",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/claims/{id}/verify-reversibility": {
+      "post": {
+        "tags": [ "Claims" ],
+        "operationId": "VerifyClaimReversibility",
+        "summary": "Prove zero-mutation round-tripping for a stored claim (governance User Story 3.2).",
+        "description": "Re-exports the stored claim to 837, re-imports the result, and reports whether the emitted text and the reconstructed record are identical to the originals.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The reversibility verdict for the claim.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReversibilityReportDto" }
+              }
+            }
+          },
+          "404": {
+            "description": "No claim with that identifier is held in the store.",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BatchGenerationRequestDto": {
+        "type": "object",
+        "required": [ "BillCount", "JurisdictionState", "MedicalCodeCategories" ],
+        "properties": {
+          "BillCount": { "type": "integer", "format": "int32", "minimum": 1, "maximum": 500 },
+          "JurisdictionState": { "type": "string", "minLength": 2, "maxLength": 2 },
+          "MedicalCodeCategories": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "ClaimHeaderDto": {
+        "type": "object",
+        "required": [
+          "BHT03_ClaimSubmitterTransactionId",
+          "BHT04_TransactionSetCreationDate",
+          "Loop2010AA_NM103_BillingProviderLastNameOrOrg",
+          "Loop2010AA_NM109_BillingProviderNpi",
+          "Loop2010AA_N301_BillingProviderAddressLine",
+          "Loop2010AA_N401_BillingProviderCity",
+          "Loop2010AA_N402_BillingProviderState",
+          "Loop2010AA_N403_BillingProviderZipCode",
+          "Loop2010BA_NM103_SubscriberLastName",
+          "Loop2010BA_NM104_SubscriberFirstName",
+          "Loop2010BA_DMG02_SubscriberDob",
+          "Loop2010BA_DMG03_SubscriberGender",
+          "Loop2010BB_NM103_PayerName",
+          "Loop2010BB_NM109_PayerId",
+          "CLM01_ClaimControlNumber",
+          "CLM02_TotalClaimChargeAmount",
+          "CLM05_1_PlaceOfServiceCode",
+          "CLM05_3_ClaimFrequencyCode",
+          "HI01_2_PrincipalDiagnosisCode",
+          "LineItems"
+        ],
+        "properties": {
+          "Id": { "type": "string", "format": "uuid", "nullable": true },
+          "BHT03_ClaimSubmitterTransactionId": { "type": "string", "maxLength": 50 },
+          "BHT04_TransactionSetCreationDate": { "type": "string", "format": "date-time" },
+          "Loop2010AA_NM103_BillingProviderLastNameOrOrg": { "type": "string", "maxLength": 100 },
+          "Loop2010AA_NM104_BillingProviderFirstName": { "type": "string", "maxLength": 35, "nullable": true },
+          "Loop2010AA_NM109_BillingProviderNpi": { "type": "string", "maxLength": 10 },
+          "Loop2010AA_N301_BillingProviderAddressLine": { "type": "string", "maxLength": 55 },
+          "Loop2010AA_N401_BillingProviderCity": { "type": "string", "maxLength": 30 },
+          "Loop2010AA_N402_BillingProviderState": { "type": "string", "maxLength": 2 },
+          "Loop2010AA_N403_BillingProviderZipCode": { "type": "string", "maxLength": 15 },
+          "Loop2010BA_NM103_SubscriberLastName": { "type": "string", "maxLength": 60 },
+          "Loop2010BA_NM104_SubscriberFirstName": { "type": "string", "maxLength": 35 },
+          "Loop2010BA_DMG02_SubscriberDob": { "type": "string", "maxLength": 8 },
+          "Loop2010BA_DMG03_SubscriberGender": { "type": "string", "maxLength": 1 },
+          "Loop2010BB_NM103_PayerName": { "type": "string", "maxLength": 60 },
+          "Loop2010BB_NM109_PayerId": { "type": "string", "maxLength": 80 },
+          "CLM01_ClaimControlNumber": { "type": "string", "maxLength": 38 },
+          "CLM02_TotalClaimChargeAmount": { "type": "number", "format": "double" },
+          "CLM05_1_PlaceOfServiceCode": { "type": "string", "maxLength": 2 },
+          "CLM05_3_ClaimFrequencyCode": { "type": "string", "maxLength": 1 },
+          "HI01_2_PrincipalDiagnosisCode": { "type": "string", "maxLength": 10 },
+          "LineItems": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ClaimLineItemDto" }
+          }
+        }
+      },
+      "ClaimLineItemDto": {
+        "type": "object",
+        "required": [
+          "LX01_AssignedLineNumber",
+          "SV101_2_ProcedureCode",
+          "SV102_LineItemChargeAmount",
+          "SV104_ServiceUnitCount",
+          "SV103_UnitOfMeasure",
+          "DTP03_ServiceDate"
+        ],
+        "properties": {
+          "Id": { "type": "string", "format": "uuid", "nullable": true },
+          "LX01_AssignedLineNumber": { "type": "integer", "format": "int32" },
+          "SV101_2_ProcedureCode": { "type": "string", "maxLength": 5 },
+          "SV102_LineItemChargeAmount": { "type": "number", "format": "double" },
+          "SV104_ServiceUnitCount": { "type": "number", "format": "double" },
+          "SV103_UnitOfMeasure": { "type": "string", "maxLength": 2 },
+          "DTP03_ServiceDate": { "type": "string", "maxLength": 8 }
+        }
+      },
+      "ReversibilityReportDto": {
+        "type": "object",
+        "required": [ "ClaimId", "EdiTextIsIdentical", "RecordIsIdentical" ],
+        "properties": {
+          "ClaimId": { "type": "string", "format": "uuid" },
+          "EdiTextIsIdentical": { "type": "boolean" },
+          "RecordIsIdentical": { "type": "boolean" },
+          "Differences": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "nullable": true },
+          "title": { "type": "string", "nullable": true },
+          "status": { "type": "integer", "format": "int32", "nullable": true },
+          "detail": { "type": "string", "nullable": true },
+          "instance": { "type": "string", "nullable": true }
+        }
+      }
+    }
+  }
+}
