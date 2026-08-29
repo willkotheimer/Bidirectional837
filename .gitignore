@@ -1,0 +1,17 @@
+# .NET build output
+bin/
+obj/
+*.user
+TestResults/
+
+# Local ephemeral data produced by the seed loader
+data/
+
+# Large authoritative datasets fetched by scripts/fetch_and_convert.py
+seed/full/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

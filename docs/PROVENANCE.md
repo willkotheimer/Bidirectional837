@@ -28,3 +28,39 @@ Suggested next steps (for auditability):
 - Commit this file alongside changes to the code and CI so provenance is versioned.
 - Add a CHANGELOG.md to record future governance updates and decisions.
 
+
+---
+
+## Continuation log — build completion (Claude Opus 5)
+
+The entries above were authored by GitHub Copilot and are preserved unchanged. Everything below
+records the completion of the build. Architectural decisions, and every departure from
+`governance.txt`, live in `docs/DECISIONS.md`; this log records what was done and when.
+
+### Section 1 — Governed schema and ephemeral persistence (2026-08-29)
+
+- Surveyed the inherited tree: `governance.txt` (Gemini AI) plus Python seed tooling, sample data
+  and docs (GitHub Copilot). No .NET solution existed; governance Sections 2-4 mandate one.
+- Confirmed three decisions with the project owner before writing code: build order (ADR-001),
+  persistence mechanism (ADR-002), and pull request delivery (ADR-006).
+- Transcribed the governance Section 2 entity model verbatim into `src/Governance.Domain/Entities`
+  and marked it as a normative transcription (ADR-003).
+- Wrote the Section 1 test suite first and recorded it failing, per governance Section 4:
+  164 failed / 26 passed, `docs/tdd-evidence/section-1-red.txt`. Every invariant is an xUnit
+  `[Theory]`. The 26 passing tests are reflection-only naming guards over the transcription and
+  drive no implementation; this is disclosed in `docs/tdd-evidence/README.md` and in ADR-003.
+- Implemented `EphemeralClaimStore` and `ClaimsDbContext`. Final state 190 passed / 0 failed,
+  `docs/tdd-evidence/section-1-green.txt`.
+- Two defects were found by the failing tests rather than by inspection, both in the money path:
+  SQLite float coercion corrupting `9999999999999999.99` into `10000000000000000`, and loss of
+  trailing zeros turning `1.00` into `1`. Both are Zero-Mutation violations; both are fixed and
+  recorded in ADR-004.
+- One governed guarantee is genuinely weakened by the absence of SQL Server: `StringLength` is not
+  enforced by SQLite. Verified by probe, recorded in ADR-005, and carried forward as a debt owed by
+  Section 2.
+- One inherited defect recorded and deferred: `seed/charges_sample.csv` is referenced in three
+  places but absent, and the loader hides this behind an existence check (ADR-007).
+
+Data sources: no new external data was introduced in this section. The claim corpus used as Theory
+data is deterministic and synthetic, contains no PHI, and is generated in-process by
+`tests/Governance.Domain.Tests/Corpus/GovernedClaimCorpus.cs`.
