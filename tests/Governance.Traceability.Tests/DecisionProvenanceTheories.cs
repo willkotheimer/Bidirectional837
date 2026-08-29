@@ -16,8 +16,10 @@ public class DecisionProvenanceTheories
     // than from the single token following the keyword.
     private const string MarkerKeyword = "PROVENANCE:";
     private static readonly Regex AdrCitation = new(@"ADR-\d{3}", RegexOptions.Compiled);
+    private static readonly Regex FindingCitation = new(@"FIND-\d{3}", RegexOptions.Compiled);
     private static readonly Regex GovernanceCitation = new(@"GOVERNANCE-(\d+)", RegexOptions.Compiled);
-    private static readonly Regex RegisterRow = new(@"^\|\s*\[(ADR-\d{3})\]", RegexOptions.Compiled);
+    private static readonly Regex DecisionRow = new(@"^\|\s*\[(ADR-\d{3})\]", RegexOptions.Compiled);
+    private static readonly Regex FindingRow = new(@"^\|\s*\[(FIND-\d{3})\]", RegexOptions.Compiled);
 
     /// <summary>Governance.txt is numbered 1 to 5; a marker citing anything else cites nothing.</summary>
     private const int GovernedSectionCount = 5;
@@ -27,6 +29,12 @@ public class DecisionProvenanceTheories
     /// <summary>Every decision the register marks as code-bearing.</summary>
     public static IEnumerable<object[]> DecisionsRequiringAMarker() =>
         ReadRegister()
+            .Where(entry => entry.Value.Equals("required", StringComparison.OrdinalIgnoreCase))
+            .Select(entry => new object[] { entry.Key });
+
+    /// <summary>Every finding the register says is held shut by a test.</summary>
+    public static IEnumerable<object[]> FindingsRequiringAGuard() =>
+        ReadFindings()
             .Where(entry => entry.Value.Equals("required", StringComparison.OrdinalIgnoreCase))
             .Select(entry => new object[] { entry.Key });
 
@@ -80,6 +88,40 @@ public class DecisionProvenanceTheories
     }
 
 
+    /// <summary>
+    /// A finding the register says is held shut by a test must name that test in the source. This
+    /// is the same contract as ADR-008 applies to decisions, extended to findings: a fix that is
+    /// not guarded is a fix that can silently regress.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(FindingsRequiringAGuard))]
+    public void Finding_marked_as_guarded_is_cited_by_a_test(string findingId)
+    {
+        var guarding = EnumerateSourceFiles()
+            .Where(path => CitedFindings(path).Contains(findingId))
+            .Select(path => Path.GetRelativePath(RepoRoot, path))
+            .ToList();
+
+        Assert.True(guarding.Count > 0,
+            $"{findingId} is marked as guarded in docs/FINDINGS.md but no source file carries a " +
+            $"'PROVENANCE: {findingId}' comment. Either mark the test that holds the finding shut, " +
+            "or change the register's Guard column to 'not applicable' and say why in the entry.");
+    }
+
+    [Theory]
+    [MemberData(nameof(SourceFiles))]
+    public void Finding_markers_in_a_source_file_resolve_to_the_register(string relativePath)
+    {
+        var registered = ReadFindings().Keys.ToHashSet();
+        var cited = CitedFindings(Path.Combine(RepoRoot, relativePath));
+
+        var dangling = cited.Where(id => !registered.Contains(id)).ToList();
+
+        Assert.True(dangling.Count == 0,
+            $"{relativePath} cites {string.Join(", ", dangling)}, which docs/FINDINGS.md does not " +
+            "define. A marker must not outlive the finding it cites.");
+    }
+
     /// <summary>Lines that carry a provenance marker.</summary>
     private static IEnumerable<string> MarkerLines(string absolutePath) =>
         File.ReadLines(absolutePath).Where(line => line.Contains(MarkerKeyword, StringComparison.Ordinal));
@@ -88,6 +130,13 @@ public class DecisionProvenanceTheories
     private static List<string> CitedDecisions(string absolutePath) =>
         MarkerLines(absolutePath)
             .SelectMany(line => AdrCitation.Matches(line).Select(match => match.Value))
+            .Distinct()
+            .ToList();
+
+    /// <summary>Every finding cited by a marker in the file.</summary>
+    private static List<string> CitedFindings(string absolutePath) =>
+        MarkerLines(absolutePath)
+            .SelectMany(line => FindingCitation.Matches(line).Select(match => match.Value))
             .Distinct()
             .ToList();
 
@@ -109,22 +158,32 @@ public class DecisionProvenanceTheories
         }
     }
 
-    /// <summary>Reads the register table: decision id to the value of its Code marker column.</summary>
-    private static Dictionary<string, string> ReadRegister()
+    /// <summary>Decision id to the value of its Code marker column.</summary>
+    private static Dictionary<string, string> ReadRegister() =>
+        ReadRegister(Path.Combine("docs", "DECISIONS.md"), DecisionRow);
+
+    /// <summary>Finding id to the value of its Guard column.</summary>
+    private static Dictionary<string, string> ReadFindings() =>
+        ReadRegister(Path.Combine("docs", "FINDINGS.md"), FindingRow);
+
+    /// <summary>
+    /// Reads a register table keyed by its identifier column. Both registers put the enforced
+    /// marker column last, so the value read is the final cell of the row.
+    /// </summary>
+    private static Dictionary<string, string> ReadRegister(string relativePath, Regex rowPattern)
     {
         var register = new Dictionary<string, string>();
 
-        foreach (var line in File.ReadAllLines(Path.Combine(RepoRoot, "docs", "DECISIONS.md")))
+        foreach (var line in File.ReadAllLines(Path.Combine(RepoRoot, relativePath)))
         {
-            var match = RegisterRow.Match(line);
+            var match = rowPattern.Match(line);
             if (!match.Success) continue;
 
             var cells = line.Split('|', StringSplitOptions.TrimEntries);
-            // Cells are: leading empty, id, decision, status, section, code marker, trailing empty.
             register[match.Groups[1].Value] = cells[^2];
         }
 
-        Assert.True(register.Count > 0, "docs/DECISIONS.md contains no parseable register rows.");
+        Assert.True(register.Count > 0, $"{relativePath} contains no parseable register rows.");
         return register;
     }
 
