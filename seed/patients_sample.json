@@ -1,0 +1,32 @@
+[
+  {
+    "id": "patient-001",
+    "name": {
+      "first": "John",
+      "last": "Doe"
+    },
+    "dob": "1975-04-12",
+    "gender": "M",
+    "address": {
+      "line1": "10 Example Rd",
+      "city": "Somewhere",
+      "state": "TX",
+      "zip": "73301"
+    }
+  },
+  {
+    "id": "patient-002",
+    "name": {
+      "first": "Alice",
+      "last": "Garcia"
+    },
+    "dob": "1988-11-02",
+    "gender": "F",
+    "address": {
+      "line1": "55 Sample Blvd",
+      "city": "Elsewhere",
+      "state": "FL",
+      "zip": "32004"
+    }
+  }
+]

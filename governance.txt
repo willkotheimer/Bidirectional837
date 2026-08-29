@@ -1,0 +1,153 @@
+These governance guidelines serve as a binding technical contract for the build of the bi-directional 837 / Medical Bill generation engine.1. Source of Truth & Domain InvariantsDomain Authority: The ASC X12 837P (005010X222A2) specification and the backing database schema dictate all data shapes. APIs, DTOs, and React state models are downstream views of these entities.Naming Alignment: Attribute names across the database, DTOs, and React forms must reflect ASC X12 nomenclature (e.g., Loop2000A_BillingProvider, CLM02_TotalClaimChargeAmount). If a field is named otherwise (e.g., total_amount), it requires a documented mapping attribute linking it directly to its 837 segment counterpart.Reversibility Guarantee (Zero-Mutation Rule): An 837 file imported into the application must yield a stored database record that, when re-exported without user edits, produces a byte-equivalent or functionally identical 837 payload. Re-importing that generated 837 must result in a duplicate bill record identical to the original import.2. Mandatory Database Schema (EF Core Code-First Model)Every data field is mapped directly to its 837P loop and segment origins.C#using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Governance.Domain.Entities;
+
+[Table("Claims")]
+public class ClaimHeader
+{
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    // BHT Loop - Beginning of Hierarchical Transaction
+    [Required, StringLength(50)]
+    public string BHT03_ClaimSubmitterTransactionId { get; set; } = string.Empty;
+
+    [Required]
+    public DateTime BHT04_TransactionSetCreationDate { get; set; }
+
+    // Loop 2010AA - Billing Provider
+    [Required, StringLength(100)]
+    public string Loop2010AA_NM103_BillingProviderLastNameOrOrg { get; set; } = string.Empty;
+
+    [StringLength(35)]
+    public string? Loop2010AA_NM104_BillingProviderFirstName { get; set; }
+
+    [Required, StringLength(10)] // NPI
+    public string Loop2010AA_NM109_BillingProviderNpi { get; set; } = string.Empty;
+
+    [Required, StringLength(55)]
+    public string Loop2010AA_N301_BillingProviderAddressLine { get; set; } = string.Empty;
+
+    [Required, StringLength(30)]
+    public string Loop2010AA_N401_BillingProviderCity { get; set; } = string.Empty;
+
+    [Required, StringLength(2)]
+    public string Loop2010AA_N402_BillingProviderState { get; set; } = string.Empty;
+
+    [Required, StringLength(15)]
+    public string Loop2010AA_N403_BillingProviderZipCode { get; set; } = string.Empty;
+
+    // Loop 2010BA - Subscriber / Patient
+    [Required, StringLength(60)]
+    public string Loop2010BA_NM103_SubscriberLastName { get; set; } = string.Empty;
+
+    [Required, StringLength(35)]
+    public string Loop2010BA_NM104_SubscriberFirstName { get; set; } = string.Empty;
+
+    [Required, StringLength(8)] // CCYYMMDD
+    public string Loop2010BA_DMG02_SubscriberDob { get; set; } = string.Empty;
+
+    [Required, StringLength(1)] // M / F / U
+    public string Loop2010BA_DMG03_SubscriberGender { get; set; } = string.Empty;
+
+    // Loop 2010BB - Payer Information
+    [Required, StringLength(60)]
+    public string Loop2010BB_NM103_PayerName { get; set; } = string.Empty;
+
+    [Required, StringLength(80)]
+    public string Loop2010BB_NM109_PayerId { get; set; } = string.Empty;
+
+    // Loop 2300 - Claim Details
+    [Required, StringLength(38)]
+    public string CLM01_ClaimControlNumber { get; set; } = string.Empty;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal CLM02_TotalClaimChargeAmount { get; set; }
+
+    [Required, StringLength(2)]
+    public string CLM05_1_PlaceOfServiceCode { get; set; } = string.Empty;
+
+    [Required, StringLength(1)]
+    public string CLM05_3_ClaimFrequencyCode { get; set; } = "1";
+
+    [Required, StringLength(10)] // Principal ICD-10 Code
+    public string HI01_2_PrincipalDiagnosisCode { get; set; } = string.Empty;
+
+    public List<ClaimLineItem> LineItems { get; set; } = new();
+}
+
+[Table("ClaimLineItems")]
+public class ClaimLineItem
+{
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    public Guid ClaimHeaderId { get; set; }
+    [ForeignKey(nameof(ClaimHeaderId))]
+    public ClaimHeader ClaimHeader { get; set; } = null!;
+
+    [Required]
+    public int LX01_AssignedLineNumber { get; set; }
+
+    // Loop 2400 - Professional Service
+    [Required, StringLength(5)] // CPT / HCPCS Code
+    public string SV101_2_ProcedureCode { get; set; } = string.Empty;
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal SV102_LineItemChargeAmount { get; set; }
+
+    [Column(TypeName = "decimal(18,4)")]
+    public decimal SV104_ServiceUnitCount { get; set; }
+
+    [Required, StringLength(2)] // UN = Units, MJ = Minutes
+    public string SV103_UnitOfMeasure { get; set; } = "UN";
+
+    [Required, StringLength(8)] // CCYYMMDD
+    public string DTP03_ServiceDate { get; set; } = string.Empty;
+}
+3. Mandatory Data Transfer Objects (DTOs)The DTO must match the schema and 837 mappings directly. Custom field additions or deviations require explicit documentation and architect approval.C#namespace Governance.Contracts.DTOs;
+
+public record ClaimHeaderDto(
+    Guid? Id,
+    string BHT03_ClaimSubmitterTransactionId,
+    DateTime BHT04_TransactionSetCreationDate,
+    string Loop2010AA_NM103_BillingProviderLastNameOrOrg,
+    string? Loop2010AA_NM104_BillingProviderFirstName,
+    string Loop2010AA_NM109_BillingProviderNpi,
+    string Loop2010AA_N301_BillingProviderAddressLine,
+    string Loop2010AA_N401_BillingProviderCity,
+    string Loop2010AA_N402_BillingProviderState,
+    string Loop2010AA_N403_BillingProviderZipCode,
+    string Loop2010BA_NM103_SubscriberLastName,
+    string Loop2010BA_NM104_SubscriberFirstName,
+    string Loop2010BA_DMG02_SubscriberDob,
+    string Loop2010BA_DMG03_SubscriberGender,
+    string Loop2010BB_NM103_PayerName,
+    string Loop2010BB_NM109_PayerId,
+    string CLM01_ClaimControlNumber,
+    decimal CLM02_TotalClaimChargeAmount,
+    string CLM05_1_PlaceOfServiceCode,
+    string CLM05_3_ClaimFrequencyCode,
+    string HI01_2_PrincipalDiagnosisCode,
+    List<ClaimLineItemDto> LineItems
+);
+
+public record ClaimLineItemDto(
+    Guid? Id,
+    int LX01_AssignedLineNumber,
+    string SV101_2_ProcedureCode,
+    decimal SV102_LineItemChargeAmount,
+    decimal SV104_ServiceUnitCount,
+    string SV103_UnitOfMeasure,
+    string DTP03_ServiceDate
+);
+
+public record BatchGenerationRequestDto(
+    int BillCount, // Max 500
+    string JurisdictionState,
+    List<string> MedicalCodeCategories
+);
+4. API First & Strict Test-Driven Development (TDD) ProtocolsAPI Contracts First: OpenAPI specifications (swagger.json) and C# API controllers must be fully defined before building underlying service logic.Red-Green-Refactor Requirement:Unit and Integration tests must be written first and observed failing before any service implementation code is added.Service implementations that pass tests on their first build without a recorded failing test run in CI are strictly flagged as governance violations.Roundtrip Reversibility Test Standard: Every pipeline build must run a automated test verifying that:$$\text{Import}(837_{\text{original}}) \longrightarrow \text{DB Record} \longrightarrow \text{Export}() \longrightarrow 837_{\text{re-generated}} == 837_{\text{original}}$$5. Development Roadmap: Features & User StoriesFeature 1: Synthetic Bill Batch Generator (Generation Engine)Allows users to generate up to 500 test bills filtered by medical category and jurisdiction state.User Story 1.1: Provider Data AcquisitionAs a Billing Generator Service, I want to query the open-source NPI registry API using the user-provided JurisdictionState, so that I can populate real, valid Loop2010AA Provider details.Acceptance Criteria: API integration service tests are written first. System retrieves valid NPI, Provider Name, and Physical Address. If API is unreachable, fall back gracefully to a mock state-compliant provider set.User Story 1.2: Procedure Code & Charge AssignmentAs a Generator Engine, I want to randomly pull valid medical codes from selected categories (e.g., Anesthesia, Physical Therapy, Cardiac) and attach published standard charges (or deterministic fallback charges), so that ClaimLineItemDto instances are generated.Acceptance Criteria: Failing unit tests created first. Procedure codes match valid HCPCS/CPT patterns. CLM02 total claim charge equals the sum of SV102 line item amounts.User Story 1.3: Bulk Batch GenerationAs an API Client, I want to request up to 500 synthetic claims via POST /api/v1/bills/batch-generate, so that I can create test data in bulk.Acceptance Criteria: Requesting > 500 bills returns a 400 Bad Request. Generation of 500 bills finishes in under 3.0 seconds.Feature 2: 837 Export & Archival EngineConverts generated stored bills into HIPAA 5010 compliant 837 Professional EDI text streams and packages them into a ZIP file.User Story 2.1: EDI 837 Serialization ServiceAs a System, I want to serialize ClaimHeader records into valid ASC X12 837 EDI format, so that clearinghouses can process them.Acceptance Criteria: Unit tests validating segment headers (ISA, GS, ST, BHT, CLM, SE) written first. Output validates against HIPAA 5010 syntax rules.User Story 2.2: Batch ZIP PackagingAs a User, I want to download an .837 batch as a .zip archive via GET /api/v1/claims/export-zip, so that I can transport files externally.Acceptance Criteria: Zip file contains valid individual or batched 837 files matching the database records.Feature 3: 837 Ingestion, Parsing & Reversibility DashboardIngests 837 files (individually or in ZIP archives), reconstructs database bills, and proves zero-mutation round-tripping.User Story 3.1: EDI Ingestion & TranslationAs an Ingestion Engine, I want to parse an incoming 837 file or .zip of 837 files into ClaimHeader database entities, so that they display on the Imported Bills Dashboard.Acceptance Criteria: Integration tests with malformed and valid 837 files written first. Parsed properties map 1:1 to database columns (Loop2010BA_NM103, etc.).User Story 3.2: Reversibility (Zero-Mutation) VerificationAs a QA Specialist, I want to re-export an imported bill back to an 837 file and re-import it, so that I can verify no field mutation occurred.Acceptance Criteria: Automated test asserts Original 837 Text == Re-exported 837 Text, and Original DB Record == Re-imported DB Record.
