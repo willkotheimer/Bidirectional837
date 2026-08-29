@@ -20,6 +20,8 @@ public class SchemaContractTheories
     /// undecorated name such as total_amount must fail this Theory.
     /// </summary>
     private static readonly Regex X12ProvenanceToken = new(
+        // PROVENANCE: FIND-006 - this guard first required a 2-3 character segment identifier and
+        // so rejected the valid N3 and N4 segments.
         // Segment IDs are 1-3 characters in X12 (N3, N4, NM1, DMG), followed by the 2-3 digit
         // element position, optionally followed by the composite sub-element position.
         @"^(BHT\d{2}|Loop\d{4}[A-Z]{2}_[A-Z]{1,3}\d{2,3}|CLM\d{2}(_\d)?|HI\d{2}_\d|LX\d{2}|SV\d{3}(_\d)?|DTP\d{2})_",

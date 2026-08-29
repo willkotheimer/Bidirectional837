@@ -27,6 +27,7 @@ define. The convention itself is ADR-008.
 | [ADR-008](#adr-008) | Decision provenance is marked in code and enforced by test | Accepted | 2 | required |
 | [ADR-009](#adr-009) | Routes governance does not name | Accepted | 2 | required |
 | [ADR-010](#adr-010) | Validation annotations added to the governed DTOs | Accepted | 2 | required |
+| [ADR-011](#adr-011) | Findings are recorded in a durable register and guarded | Accepted | 2 | required |
 
 ---
 
@@ -270,3 +271,27 @@ contract regresses to the property form.
 The lesson is recorded rather than quietly fixed: a control proven only at the layer that declares
 it is not proven. `Batch_generation_rejects_an_over_length_jurisdiction_state` now exercises the
 control over HTTP, through the real pipeline.
+
+## ADR-011
+
+**Findings are recorded in a durable register, and a fixed finding is held shut by a marked test.**
+Requested by the project owner, 2026-08-29. Recorded by Claude Opus 5.
+
+Findings were previously scattered: some in ADRs, some in commit messages, some only in the
+conversation that produced them. The project owner asked that they be recorded so they can be
+reported later even if that conversation is gone.
+
+`docs/FINDINGS.md` is therefore the durable register. A **finding** is a fact about the system that
+was discovered; a **decision** about what to do next is an ADR. Most findings name the ADR that
+resolved them, and most code-bearing ADRs name the finding that forced them.
+
+Each entry records what was found, why it matters in terms of the governed guarantees, how it was
+discovered, what resolved it, and any residual risk. Severity is judged by consequence to the
+Section 1 Reversibility Guarantee and to data correctness, not by effort to fix. A finding recorded
+as Mitigated rather than Fixed states its residual risk explicitly; FIND-003 is the current example.
+
+The register's **Guard** column is enforced by `Governance.Traceability.Tests` on the same contract
+ADR-008 applies to decisions. A finding marked `required` must name the test that holds it shut,
+through a `PROVENANCE: FIND-NNN` comment on that test, and a marker must not cite a finding the
+register does not define. A fix that is not guarded is a fix that can silently regress, which for
+FIND-001 would mean returning to silently corrupted money.
