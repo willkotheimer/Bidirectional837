@@ -10,7 +10,7 @@ namespace Governance.Domain.Persistence;
 /// </summary>
 /// <remarks>
 /// <para>
-/// DEVIATION (documented in docs/PROVENANCE.md, ADR-002): governance Section 2 mandates an EF
+/// PROVENANCE: ADR-002 - governance Section 2 mandates an EF
 /// Core Code-First model but does not name a database engine. The deployment carries no durable
 /// store, so the engine is SQLite in shared-cache in-memory mode. The entity model itself is
 /// unchanged from governance Section 2.

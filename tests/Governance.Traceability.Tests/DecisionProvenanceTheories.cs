@@ -11,8 +11,12 @@ namespace Governance.Traceability.Tests;
 /// </summary>
 public class DecisionProvenanceTheories
 {
-    private static readonly Regex AdrMarker = new(@"PROVENANCE:\s*(ADR-\d{3})", RegexOptions.Compiled);
-    private static readonly Regex GovernanceMarker = new(@"PROVENANCE:\s*GOVERNANCE-(\d+)", RegexOptions.Compiled);
+    // A marker line may cite more than one decision, and may cite a governed section alongside them
+    // ("PROVENANCE: GOVERNANCE-2, ADR-003"), so citations are read from the whole marker line rather
+    // than from the single token following the keyword.
+    private const string MarkerKeyword = "PROVENANCE:";
+    private static readonly Regex AdrCitation = new(@"ADR-\d{3}", RegexOptions.Compiled);
+    private static readonly Regex GovernanceCitation = new(@"GOVERNANCE-(\d+)", RegexOptions.Compiled);
     private static readonly Regex RegisterRow = new(@"^\|\s*\[(ADR-\d{3})\]", RegexOptions.Compiled);
 
     /// <summary>Governance.txt is numbered 1 to 5; a marker citing anything else cites nothing.</summary>
@@ -35,7 +39,7 @@ public class DecisionProvenanceTheories
     public void Decision_marked_as_code_bearing_appears_in_the_source(string decisionId)
     {
         var marked = EnumerateSourceFiles()
-            .Where(path => AdrMarker.Matches(File.ReadAllText(path)).Any(m => m.Groups[1].Value == decisionId))
+            .Where(path => CitedDecisions(path).Contains(decisionId))
             .Select(path => Path.GetRelativePath(RepoRoot, path))
             .ToList();
 
@@ -50,10 +54,7 @@ public class DecisionProvenanceTheories
     public void Decision_markers_in_a_source_file_resolve_to_the_register(string relativePath)
     {
         var registered = ReadRegister().Keys.ToHashSet();
-        var cited = AdrMarker.Matches(File.ReadAllText(Path.Combine(RepoRoot, relativePath)))
-            .Select(match => match.Groups[1].Value)
-            .Distinct()
-            .ToList();
+        var cited = CitedDecisions(Path.Combine(RepoRoot, relativePath));
 
         var dangling = cited.Where(id => !registered.Contains(id)).ToList();
 
@@ -66,8 +67,8 @@ public class DecisionProvenanceTheories
     [MemberData(nameof(SourceFiles))]
     public void Governance_markers_in_a_source_file_name_a_real_governed_section(string relativePath)
     {
-        var cited = GovernanceMarker.Matches(File.ReadAllText(Path.Combine(RepoRoot, relativePath)))
-            .Select(match => int.Parse(match.Groups[1].Value))
+        var cited = MarkerLines(Path.Combine(RepoRoot, relativePath))
+            .SelectMany(line => GovernanceCitation.Matches(line).Select(m => int.Parse(m.Groups[1].Value)))
             .Distinct()
             .ToList();
 
@@ -77,6 +78,18 @@ public class DecisionProvenanceTheories
             $"{relativePath} cites governance section(s) {string.Join(", ", outOfRange)}; " +
             $"governance.txt has sections 1 to {GovernedSectionCount}.");
     }
+
+
+    /// <summary>Lines that carry a provenance marker.</summary>
+    private static IEnumerable<string> MarkerLines(string absolutePath) =>
+        File.ReadLines(absolutePath).Where(line => line.Contains(MarkerKeyword, StringComparison.Ordinal));
+
+    /// <summary>Every decision cited by a marker in the file.</summary>
+    private static List<string> CitedDecisions(string absolutePath) =>
+        MarkerLines(absolutePath)
+            .SelectMany(line => AdrCitation.Matches(line).Select(match => match.Value))
+            .Distinct()
+            .ToList();
 
     private static IEnumerable<string> EnumerateSourceFiles()
     {

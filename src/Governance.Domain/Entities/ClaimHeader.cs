@@ -1,4 +1,4 @@
-// PROVENANCE: Transcribed verbatim from governance.txt Section 2 ("Mandatory Database
+// PROVENANCE: GOVERNANCE-2, ADR-003 - transcribed verbatim from governance.txt Section 2 ("Mandatory Database
 // Schema (EF Core Code-First Model)"). This file is a normative transcription, not a
 // design artifact. Any change to a property name, type, nullability, or length here is a
 // governance amendment and must be recorded in docs/PROVENANCE.md with justification.

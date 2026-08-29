@@ -240,3 +240,33 @@ Annotations rather than an `IValidatableObject` implementation were chosen so th
 the published OpenAPI schema as `maxLength`, making the contract self-describing to clients. A
 validation method would have kept the Section 3 text character-identical but left the published
 contract silent about the very limits ADR-005 made the API responsible for.
+
+### ADR-010 addendum: annotations bind to the constructor parameter, not the property
+
+Recorded 2026-08-29 after an end-to-end test caught the mistake.
+
+The annotations were first written as `[property: Required, StringLength(n)]`, which keeps the
+governed Section 3 text closer to verbatim by attaching metadata to the generated property rather
+than to the parameter list. In-process validation with `Validator.TryValidateObject` accepted this
+and every contract-level Theory passed.
+
+The framework does not. ASP.NET Core reads record validation metadata from the primary constructor
+parameter, and on encountering it on a generated property it throws:
+
+> Record type 'BatchGenerationRequestDto' has validation metadata defined on property
+> 'MedicalCodeCategories' that will be ignored. 'MedicalCodeCategories' is a parameter in the record
+> primary constructor and validation metadata must be associated with the constructor parameter.
+
+The consequence was worse than a failed validation: the request died with a 500 before the governed
+ceiling was ever evaluated, so a request for 5000 bills was answered with an internal error instead
+of the 400 User Story 1.3 requires. A contract-level test alone would have shipped this.
+
+Three changes follow. The annotations now sit on the constructor parameters.
+`ContractValidationTheories` reads metadata from the parameters, which is where the framework reads
+it, so the suite can no longer pass against metadata the framework ignores. And a Theory,
+`Contract_declares_no_validation_metadata_on_a_generated_property`, fails the build if any governed
+contract regresses to the property form.
+
+The lesson is recorded rather than quietly fixed: a control proven only at the layer that declares
+it is not proven. `Batch_generation_rejects_an_over_length_jurisdiction_state` now exercises the
+control over HTTP, through the real pipeline.

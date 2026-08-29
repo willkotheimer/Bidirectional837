@@ -109,6 +109,30 @@ public class ApiContractConformanceTheories : IClassFixture<WebApplicationFactor
         Assert.Equal(expectRejection, response.StatusCode == HttpStatusCode.BadRequest);
     }
 
+    /// <summary>
+    /// PROVENANCE: ADR-005, ADR-010 - end-to-end proof that the compensating control actually
+    /// fires. ContractValidationTheories proves the governed limits are declared where the
+    /// framework reads them; this proves the deployed pipeline rejects a violation with the 400
+    /// that governance requires, rather than passing it through to a store that cannot refuse it.
+    /// </summary>
+    [Theory]
+    [InlineData(2, false)]
+    [InlineData(3, true)]
+    [InlineData(40, true)]
+    public async Task Batch_generation_rejects_an_over_length_jurisdiction_state(int stateLength, bool expectRejection)
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/v1/bills/batch-generate", new
+        {
+            BillCount = 10,
+            JurisdictionState = new string('X', stateLength),
+            MedicalCodeCategories = new[] { "Anesthesia" },
+        });
+
+        Assert.Equal(expectRejection, response.StatusCode == HttpStatusCode.BadRequest);
+    }
+
     /// <summary>Substitutes a concrete value for any path template parameter.</summary>
     private static string Concretise(string path) =>
         path.Replace("{id}", Guid.Empty.ToString());
