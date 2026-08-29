@@ -64,3 +64,25 @@ records the completion of the build. Architectural decisions, and every departur
 Data sources: no new external data was introduced in this section. The claim corpus used as Theory
 data is deterministic and synthetic, contains no PHI, and is generated in-process by
 `tests/Governance.Domain.Tests/Corpus/GovernedClaimCorpus.cs`.
+
+### Section 2 — API contracts, DTO validation and decision traceability (2026-08-29)
+
+- Authored `docs/api/swagger.json` before writing any controller, per governance Section 4. It is
+  the published surface, and `Governance.Api.Tests` measures the application against it rather than
+  the reverse. Governance names two routes; the four it does not name are recorded in ADR-009.
+- Transcribed the governance Section 3 DTOs into `src/Governance.Contracts`.
+- Adopted the decision provenance marking convention requested by the project owner (ADR-008).
+  Every code-bearing decision now carries a `PROVENANCE: ADR-NNN` comment, and
+  `Governance.Traceability.Tests` enforces the convention in both directions. Section 1 sources were
+  retrofitted with markers as part of the GREEN commit.
+- Recorded RED: 89 failed / 345 passed (`docs/tdd-evidence/section-2-red.txt`). Recorded GREEN:
+  444 passed / 0 failed (`docs/tdd-evidence/section-2-green.txt`).
+- ADR-005, the debt Section 1 left open, is discharged: the governed StringLength limits are
+  declared on the DTOs, proven to mirror the entity model field by field, and proven to reject over
+  HTTP.
+- One defect was found by an end-to-end test that every contract-level test had missed. Validation
+  metadata written as `[property: ...]` on a record is rejected by ASP.NET Core at runtime, and a
+  request for 5000 bills returned 500 rather than the governed 400. Recorded in the ADR-010
+  addendum, fixed, and guarded by a Theory against regression.
+- Controllers are fully defined and answer 501 where the service logic beneath them is a later
+  section's deliverable. They never answer 404: the contract exists from this section onward.

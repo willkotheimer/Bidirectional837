@@ -238,7 +238,7 @@ public class PersistenceRoundTripTheories
     }
 
     /// <summary>
-    /// The deployment carries no durable database by decision (see docs/PROVENANCE.md).
+    /// PROVENANCE: ADR-002 - the deployment carries no durable database by decision.
     /// Two stores must therefore share nothing: state lives and dies with its store.
     /// </summary>
     [Theory]

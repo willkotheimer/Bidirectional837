@@ -1,8 +1,13 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Governance.Api/Governance.Api.csproj" />
+    <Project Path="src/Governance.Contracts/Governance.Contracts.csproj" />
     <Project Path="src/Governance.Domain/Governance.Domain.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Governance.Api.Tests/Governance.Api.Tests.csproj" />
+    <Project Path="tests/Governance.Contracts.Tests/Governance.Contracts.Tests.csproj" />
     <Project Path="tests/Governance.Domain.Tests/Governance.Domain.Tests.csproj" />
+    <Project Path="tests/Governance.Traceability.Tests/Governance.Traceability.Tests.csproj" />
   </Folder>
 </Solution>

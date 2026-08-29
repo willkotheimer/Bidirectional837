@@ -18,7 +18,8 @@ public class ClaimsDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Governed monetary and quantity columns are stored as exact integer minor units.
+        // PROVENANCE: ADR-004 - governed monetary and quantity columns are stored as exact
+        // integer minor units.
         //
         // SQLite assigns NUMERIC affinity to a column declared decimal(18,2) and will coerce a
         // stored decimal to a float, which is lossy: 9999999999999999.99 returned as

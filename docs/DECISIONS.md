@@ -9,15 +9,24 @@ Authorship is recorded per entry. `governance.txt` itself was authored by Gemini
 tooling, sample data and initial docs were authored by GitHub Copilot; entries below marked
 *Claude Opus 5* were made during the completion of the build.
 
-| ID | Decision | Status | Section |
-|----|----------|--------|---------|
-| [ADR-001](#adr-001) | API and engine first; React deferred | Accepted | 1 |
-| [ADR-002](#adr-002) | Ephemeral SQLite replaces SQL Server | Accepted | 1 |
-| [ADR-003](#adr-003) | Governed entities are a verbatim transcription | Accepted | 1 |
-| [ADR-004](#adr-004) | Money stored as integer minor units | Accepted | 1 |
-| [ADR-005](#adr-005) | String length enforcement moves to the API layer | Accepted | 1 |
-| [ADR-006](#adr-006) | One pull request per section, delivered by branch push | Accepted | 1 |
-| [ADR-007](#adr-007) | Inherited seed tooling retained, `charges_sample.csv` outstanding | Open | 1 |
+The **Code marker** column below is enforced, not advisory. Where it reads `required`, the decision
+changes code, and every place the code embodies that decision carries a comment reading
+`PROVENANCE: ADR-NNN`. `Governance.Traceability.Tests` fails the build if a required marker is
+absent from the source, or if source carries a marker for an ADR that this register does not
+define. The convention itself is ADR-008.
+
+| ID | Decision | Status | Section | Code marker |
+|----|----------|--------|---------|-------------|
+| [ADR-001](#adr-001) | API and engine first; React deferred | Accepted | 1 | not applicable |
+| [ADR-002](#adr-002) | Ephemeral SQLite replaces SQL Server | Accepted | 1 | required |
+| [ADR-003](#adr-003) | Governed entities are a verbatim transcription | Accepted | 1 | required |
+| [ADR-004](#adr-004) | Money stored as integer minor units | Accepted | 1 | required |
+| [ADR-005](#adr-005) | String length enforcement moves to the API layer | Discharged by ADR-010 | 1 | required |
+| [ADR-006](#adr-006) | One pull request per section, delivered by branch push | Accepted | 1 | not applicable |
+| [ADR-007](#adr-007) | Inherited seed tooling retained, `charges_sample.csv` outstanding | Open | 1 | not applicable |
+| [ADR-008](#adr-008) | Decision provenance is marked in code and enforced by test | Accepted | 2 | required |
+| [ADR-009](#adr-009) | Routes governance does not name | Accepted | 2 | required |
+| [ADR-010](#adr-010) | Validation annotations added to the governed DTOs | Accepted | 2 | required |
 
 ---
 
@@ -149,3 +158,115 @@ guards its absence with `if charges_path.exists()`, so it fails silently: the `c
 created and left empty. Governance User Story 1.2 requires published standard charges or a
 deterministic fallback, so this is resolved in the Feature 1 section, not before, and this entry
 stays open until then.
+
+## ADR-008
+
+**Decision provenance is marked in code and the marking is enforced by test.**
+Requested by the project owner, 2026-08-29. Recorded by Claude Opus 5.
+
+A decision register that no one can trace back to the code it governs decays into a document
+nobody reads. Every code element that embodies a decision therefore carries a comment of the form
+`PROVENANCE: ADR-NNN`, and code that transcribes governance rather than deciding anything carries
+`PROVENANCE: GOVERNANCE-N`, naming the governed section.
+
+`Governance.Traceability.Tests` enforces both directions as Theories:
+
+- every `ADR-NNN` marker in the source resolves to an entry in this register, so a marker cannot
+  outlive the decision it cites;
+- every register entry whose **Code marker** column reads `required` appears at least once in the
+  source, so a decision cannot claim to change code without showing where.
+
+The register's table is the single source of truth for which decisions are code-bearing. Marking a
+decision `required` and then failing to mark the code breaks the build, which is the point: the
+register cannot silently drift out of step with the system it governs.
+
+## ADR-009
+
+**Routes that governance does not name.**
+Claude Opus 5, 2026-08-29.
+
+Governance names two routes explicitly: `POST /api/v1/bills/batch-generate` (User Story 1.3) and
+`GET /api/v1/claims/export-zip` (User Story 2.2). Both are used verbatim.
+
+User Stories 3.1 and 3.2 require ingestion and reversibility verification but name no route, and the
+Imported Bills Dashboard needs a way to read what has been ingested. Four routes are therefore
+added, following the versioning and pluralisation already established by the two governed routes:
+
+| Route | Serves | Rationale |
+|-------|--------|-----------|
+| `POST /api/v1/claims/import` | User Story 3.1 | Accepts a single 837 file or a ZIP of them, mirroring the export route's packaging |
+| `GET /api/v1/claims` | User Story 3.1 | Backs the Imported Bills Dashboard listing |
+| `GET /api/v1/claims/{id}` | User Story 3.1 | Retrieval of one reconstructed claim |
+| `POST /api/v1/claims/{id}/verify-reversibility` | User Story 3.2 | Re-exports and re-imports a claim and reports the verdict; POST rather than GET because the operation performs a full round trip rather than reading state |
+
+These are additions to the governed surface, not deviations from it: no governed route is changed,
+renamed or removed. The authored contract in `docs/api/swagger.json` is the full published surface,
+and `Governance.Api.Tests` asserts the application exposes exactly the paths that contract declares
+and no others.
+
+`ReversibilityReportDto` is a new response contract with no counterpart in governance Section 3. It
+carries no claim field; it reports a verdict about a claim (`EdiTextIsIdentical`,
+`RecordIsIdentical`, and the differences found). Governance Section 3 governs the shape of claim
+DTOs, so a verdict object does not deviate from it, but it is recorded here because User Story 3.2
+specifies the assertion without specifying how the result is surfaced.
+
+## ADR-010
+
+**Validation annotations are added to the governed DTOs, discharging ADR-005.**
+Claude Opus 5, 2026-08-29.
+
+*Governed clause affected:* Section 3 states that the DTO must match the schema and 837 mappings
+directly, and that custom field additions or deviations require explicit documentation and architect
+approval. This entry is that documentation; approval is sought through the Section 2 pull request.
+
+ADR-005 established that the ephemeral SQLite store cannot enforce the Section 2 `StringLength`
+limits, and made the API layer responsible for them. The governed Section 3 text carries no
+validation metadata, so the annotations are an addition to it.
+
+The addition is strictly non-structural. **No field is added, removed, renamed or retyped.** Every
+annotation mirrors a limit that governance Section 2 already states for the corresponding column,
+and `Governance.Contracts.Tests` proves the mirroring rather than trusting it: a Theory walks the
+governed entity properties and asserts that each DTO property of the same name carries the same
+maximum length and the same optionality. A limit that drifts from Section 2 fails the build.
+
+`BatchGenerationRequestDto.BillCount` additionally carries the range 1 to 500. The upper bound is
+governed directly - User Story 1.3 requires that a request above 500 return 400 Bad Request. The
+lower bound of 1 is an addition: a request for zero or a negative number of bills has no meaningful
+result, and rejecting it at the contract boundary is cheaper than defining what an empty batch
+means. `JurisdictionState` is constrained to exactly 2 characters, matching the governed
+`Loop2010AA_N402_BillingProviderState` column it ultimately populates.
+
+Annotations rather than an `IValidatableObject` implementation were chosen so the limits appear in
+the published OpenAPI schema as `maxLength`, making the contract self-describing to clients. A
+validation method would have kept the Section 3 text character-identical but left the published
+contract silent about the very limits ADR-005 made the API responsible for.
+
+### ADR-010 addendum: annotations bind to the constructor parameter, not the property
+
+Recorded 2026-08-29 after an end-to-end test caught the mistake.
+
+The annotations were first written as `[property: Required, StringLength(n)]`, which keeps the
+governed Section 3 text closer to verbatim by attaching metadata to the generated property rather
+than to the parameter list. In-process validation with `Validator.TryValidateObject` accepted this
+and every contract-level Theory passed.
+
+The framework does not. ASP.NET Core reads record validation metadata from the primary constructor
+parameter, and on encountering it on a generated property it throws:
+
+> Record type 'BatchGenerationRequestDto' has validation metadata defined on property
+> 'MedicalCodeCategories' that will be ignored. 'MedicalCodeCategories' is a parameter in the record
+> primary constructor and validation metadata must be associated with the constructor parameter.
+
+The consequence was worse than a failed validation: the request died with a 500 before the governed
+ceiling was ever evaluated, so a request for 5000 bills was answered with an internal error instead
+of the 400 User Story 1.3 requires. A contract-level test alone would have shipped this.
+
+Three changes follow. The annotations now sit on the constructor parameters.
+`ContractValidationTheories` reads metadata from the parameters, which is where the framework reads
+it, so the suite can no longer pass against metadata the framework ignores. And a Theory,
+`Contract_declares_no_validation_metadata_on_a_generated_property`, fails the build if any governed
+contract regresses to the property form.
+
+The lesson is recorded rather than quietly fixed: a control proven only at the layer that declares
+it is not proven. `Batch_generation_rejects_an_over_length_jurisdiction_state` now exercises the
+control over HTTP, through the real pipeline.
