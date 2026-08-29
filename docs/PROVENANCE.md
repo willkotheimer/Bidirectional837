@@ -101,3 +101,31 @@ data is deterministic and synthetic, contains no PHI, and is generated in-proces
 - FIND-005 is the one finding carrying no guard, and is recorded as Open rather than quietly
   omitted: the inherited seed loader hides a missing charge file behind an existence check. Its
   guard arrives with its fix, in the Feature 1 section.
+
+### Section 3 — Feature 1, the synthetic bill batch generator (2026-08-29)
+
+- Implemented governance Feature 1: provider acquisition (User Story 1.1), procedure code and charge
+  assignment (1.2), and bulk generation (1.3). The `POST /api/v1/bills/batch-generate` operation
+  published in Section 2 now has an engine behind it, and `GET /api/v1/claims` and
+  `GET /api/v1/claims/{id}` read what it produced.
+- Recorded RED: 187 failed / 509 passed (`docs/tdd-evidence/section-3-red.txt`). Recorded GREEN:
+  710 passed / 0 failed (`docs/tdd-evidence/section-3-green.txt`).
+- Governed acceptance criteria are asserted as invariants over every generated claim rather than as
+  spot checks: CLM02 equals the sum of its SV102 line amounts, codes match the HCPCS pattern and
+  come from a requested category, every provider carries a check-digit-valid NPI in the requested
+  jurisdiction, line numbers run sequentially from one, and a seed reproduces a batch exactly.
+- The NPI check-digit rule is implemented in the domain, as a property of the governed
+  Loop2010AA_NM109 field, and verified against the published worked example.
+- Three findings recorded: FIND-008, invalid NPIs in the inherited provider seed, now corrected;
+  FIND-009, a routing test that proved something weaker than it claimed; and FIND-010, the
+  decomposition of the User Story 1.3 timing budget.
+- FIND-005 and ADR-007 are closed. `seed/charges_sample.csv` now exists alongside
+  `seed/hcpcs_categories.csv`, and a Theory reads the file names out of the Python loader itself so
+  a reference without a file fails the build.
+- Data provenance: the code catalog is 15 real HCPCS Level II codes across the three categories
+  governance names. CPT is excluded as proprietary to the AMA, per the inherited Copilot notes.
+  Descriptions are abbreviated; CMS remains the authoritative source. No PHI is involved: subscriber
+  names are drawn from a synthetic list and no real patient data enters the system.
+- The live NPI registry is queried by the deployed application and switched off in the test host, so
+  the suite is deterministic and no governed timing budget is measured against a third-party
+  service (ADR-012).

@@ -23,11 +23,15 @@ define. The convention itself is ADR-008.
 | [ADR-004](#adr-004) | Money stored as integer minor units | Accepted | 1 | required |
 | [ADR-005](#adr-005) | String length enforcement moves to the API layer | Discharged by ADR-010 | 1 | required |
 | [ADR-006](#adr-006) | One pull request per section, delivered by branch push | Accepted | 1 | not applicable |
-| [ADR-007](#adr-007) | Inherited seed tooling retained, `charges_sample.csv` outstanding | Open | 1 | not applicable |
+| [ADR-007](#adr-007) | Inherited seed tooling retained, `charges_sample.csv` outstanding | Closed by ADR-013 | 1 | not applicable |
 | [ADR-008](#adr-008) | Decision provenance is marked in code and enforced by test | Accepted | 2 | required |
 | [ADR-009](#adr-009) | Routes governance does not name | Accepted | 2 | required |
 | [ADR-010](#adr-010) | Validation annotations added to the governed DTOs | Accepted | 2 | required |
 | [ADR-011](#adr-011) | Findings are recorded in a durable register and guarded | Accepted | 2 | required |
+| [ADR-012](#adr-012) | NPI registry live by default, off in tests | Accepted | 3 | required |
+| [ADR-013](#adr-013) | Curated public HCPCS Level II catalog, no CPT | Accepted | 3 | required |
+| [ADR-014](#adr-014) | Generation is seeded and reproducible | Accepted | 3 | required |
+| [ADR-015](#adr-015) | The ephemeral store is a singleton | Accepted | 3 | required |
 
 ---
 
@@ -295,3 +299,89 @@ ADR-008 applies to decisions. A finding marked `required` must name the test tha
 through a `PROVENANCE: FIND-NNN` comment on that test, and a marker must not cite a finding the
 register does not define. A fix that is not guarded is a fix that can silently regress, which for
 FIND-001 would mean returning to silently corrupted money.
+
+## ADR-012
+
+**The live NPI registry is queried by default and switched off in the test host.**
+Constraint set by the project owner; mechanism chosen by Claude Opus 5, 2026-08-29.
+
+Governance User Story 1.1 asks the generator to query the open-source NPI registry using the
+requested jurisdiction state, and requires that an unreachable API fall back gracefully to a mock
+state-compliant provider set.
+
+The deployed application does query the registry: `Generation:UseLiveNpiRegistry` defaults to true,
+so the governed intent holds where it matters. The test host sets it to false. Three reasons, in
+order of weight. A suite that calls a third-party service is not reproducible, and governance
+Section 4 requires recorded, repeatable runs. The User Story 1.3 timing budget of 3.0 seconds for
+500 bills would otherwise be measured partly against network latency outside our control. And CI
+must not depend on an external service being up.
+
+The live path is not left untested. `NpiRegistryProviderDirectory` is exercised against a stubbed
+transport, including the mapping of a real registry response onto the governed Loop2010AA fields.
+The fallback is exercised across every way the registry can fail in practice: 503, 500, 404, an
+empty result set, a body that will not parse, a DNS failure and a timeout. The governed phrase "if
+API is unreachable" is read broadly on purpose, because each of those leaves the generator without
+a provider.
+
+`ResilientProviderDirectory` sets the registry aside for its own lifetime after the first failure.
+A batch of 500 claims must not become 500 failed network calls, each waiting out a timeout.
+
+## ADR-013
+
+**The medical code catalog is a curated public HCPCS Level II set; CPT is excluded.**
+Claude Opus 5, 2026-08-29.
+
+Governance User Story 1.2 asks for valid medical codes from selected categories carrying published
+standard charges or deterministic fallback charges, and governance Section 2 comments the
+`SV101_2_ProcedureCode` column as "CPT / HCPCS Code".
+
+CPT is proprietary to the AMA, as the inherited provenance notes from GitHub Copilot record. The
+catalog therefore holds HCPCS Level II codes only: one letter followed by four digits, within the
+governed five-character limit. Fifteen real codes across the three categories governance names as
+examples, being Anesthesia, Physical Therapy and Cardiac. This resolves FIND-005, which recorded
+that `seed/charges_sample.csv` was referenced in three places and absent from the repository.
+
+Charges are published-style values for the catalogued codes, with a deterministic fallback for any
+code outside it, which governance explicitly permits. The fallback derives the charge from the code
+text using a stable accumulator rather than `string.GetHashCode`, because .NET randomises string
+hashing per process: a hash-derived charge would differ between runs and destroy the reproducibility
+ADR-014 depends on. The same reasoning governs the synthetic provider set.
+
+The seed corpus is embedded in the assembly rather than copied beside it, so a deployed instance
+cannot start with an empty catalog.
+
+*Limitation, recorded honestly:* fifteen codes is a demonstration corpus, not a clinical one. The
+descriptions are abbreviated and the authoritative source remains CMS. Widening the catalog is a
+data task that needs no code change, and the seed integrity theories will hold the wider set to the
+same shape.
+
+## ADR-014
+
+**Generation is seeded and reproducible.**
+Claude Opus 5, 2026-08-29.
+
+Governance User Story 1.2 asks the generator to pull codes *randomly*. Randomness and
+reproducibility are not in tension here: the generator takes a seed, and the same seed yields a
+byte-identical batch. The API supplies a fresh seed per request, so a client sees the variety
+governance asks for.
+
+Reproducibility is not a nicety. Governance Section 4 requires recorded failing runs, and a
+generated claim that fails a downstream assertion is only investigable if the batch that produced it
+can be regenerated exactly. Both directions are held by Theory: the same seed yields an identical
+batch, and different seeds do not.
+
+## ADR-015
+
+**The ephemeral store is registered as a singleton.**
+Claude Opus 5, 2026-08-29.
+
+An in-memory SQLite database exists only while a connection to it is open, and `EphemeralClaimStore`
+holds that connection for its own lifetime (ADR-002). Registered per request, the store would
+therefore discard every claim at the end of the request that created it, and the Imported Bills
+Dashboard, the ZIP export and the reversibility check would all read an empty database.
+
+The store *is* the database in this topology, so its lifetime must be the application lifetime. The
+consequence, which follows directly from the project owner decision to carry no durable persistence,
+is that claims live until the process restarts and no further: a restart is a clean slate, and a
+scaled-out deployment gives each instance its own claims. Both are recorded here rather than left to
+be discovered, and both are carried into the Bicep deployment section.

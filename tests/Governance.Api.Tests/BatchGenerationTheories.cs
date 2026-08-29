@@ -10,11 +10,11 @@ namespace Governance.Api.Tests;
 /// PROVENANCE: GOVERNANCE-5 - governance Feature 1, User Story 1.3: "As an API Client, I want to
 /// request up to 500 synthetic claims via POST /api/v1/bills/batch-generate."
 /// </summary>
-public class BatchGenerationTheories : IClassFixture<WebApplicationFactory<Program>>
+public class BatchGenerationTheories : IClassFixture<GovernedApiFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly GovernedApiFactory _factory;
 
-    public BatchGenerationTheories(WebApplicationFactory<Program> factory) => _factory = factory;
+    public BatchGenerationTheories(GovernedApiFactory factory) => _factory = factory;
 
     public static IEnumerable<object[]> PermittedBatchSizes() =>
     [
@@ -60,9 +60,10 @@ public class BatchGenerationTheories : IClassFixture<WebApplicationFactory<Progr
     }
 
     /// <summary>
-    /// Governance User Story 1.3 acceptance criterion: "Generation of 500 bills finishes in under
-    /// 3.0 seconds." Measured end to end over HTTP, including persistence, which is the stricter
-    /// reading. A warm-up request precedes the measurement so that first-request JIT and DI
+    /// PROVENANCE: FIND-010 - governance User Story 1.3 acceptance criterion: "Generation of 500
+    /// bills finishes in under 3.0 seconds." Measured end to end over HTTP, including persistence
+    /// and serialisation, which is the stricter reading: generation alone is around 0.011s, so the
+    /// governed requirement passes by roughly 280x while this assertion passes by about a third. A warm-up request precedes the measurement so that first-request JIT and DI
     /// container construction are not charged against the governed budget.
     /// </summary>
     [Theory]

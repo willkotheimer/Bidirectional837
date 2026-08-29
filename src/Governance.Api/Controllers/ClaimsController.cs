@@ -1,5 +1,8 @@
+using Governance.Api.Mapping;
 using Governance.Contracts.DTOs;
+using Governance.Domain.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Governance.Api.Controllers;
 
@@ -18,11 +21,24 @@ namespace Governance.Api.Controllers;
 [Produces("application/json")]
 public class ClaimsController : ControllerBase
 {
+    private readonly EphemeralClaimStore _store;
+
+    public ClaimsController(EphemeralClaimStore store) => _store = store;
+
     /// <summary>Lists stored claims for the Imported Bills Dashboard (governance User Story 3.1).</summary>
     [HttpGet]
     [ProducesResponseType(typeof(List<ClaimHeaderDto>), StatusCodes.Status200OK)]
-    public IActionResult ListClaims()
-        => StatusCode(StatusCodes.Status501NotImplemented);
+    public async Task<IActionResult> ListClaims(CancellationToken cancellationToken)
+    {
+        await using var context = _store.CreateContext();
+
+        var claims = await context.Claims
+            .Include(claim => claim.LineItems)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        return Ok(claims.Select(ClaimMapper.ToDto).ToList());
+    }
 
     /// <summary>Retrieves a single stored claim.</summary>
     /// <remarks>
@@ -32,8 +48,19 @@ public class ClaimsController : ControllerBase
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(ClaimHeaderDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public IActionResult GetClaim(Guid id)
-        => StatusCode(StatusCodes.Status501NotImplemented);
+    public async Task<IActionResult> GetClaim(Guid id, CancellationToken cancellationToken)
+    {
+        await using var context = _store.CreateContext();
+
+        var claim = await context.Claims
+            .Include(header => header.LineItems)
+            .AsNoTracking()
+            .SingleOrDefaultAsync(header => header.Id == id, cancellationToken);
+
+        return claim is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, detail: $"No claim {id} is held in the store.")
+            : Ok(ClaimMapper.ToDto(claim));
+    }
 
     /// <summary>
     /// Downloads stored claims as 837 files in a ZIP archive (governance User Story 2.2).
