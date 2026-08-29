@@ -86,3 +86,18 @@ data is deterministic and synthetic, contains no PHI, and is generated in-proces
   addendum, fixed, and guarded by a Theory against regression.
 - Controllers are fully defined and answer 501 where the service logic beneath them is a later
   section's deliverable. They never answer 404: the contract exists from this section onward.
+
+### Section 2a — Findings register (2026-08-29)
+
+- Added `docs/FINDINGS.md` at the project owner's request, so that findings can be reported after
+  the fact without depending on a conversation transcript. Seven findings from Sections 1 and 2 are
+  recorded, backfilled from the ADRs, commit messages and test evidence that held them until now.
+- Findings and decisions are deliberately separated. A finding is something discovered about the
+  system; a decision is what was chosen in response. They cross-reference each other.
+- Extended `Governance.Traceability.Tests` so a finding marked as guarded must name the test that
+  holds it shut (ADR-011). Recorded RED: 6 failed / 462 passed
+  (`docs/tdd-evidence/section-2a-red.txt`). Recorded GREEN: 468 passed / 0 failed
+  (`docs/tdd-evidence/section-2a-green.txt`).
+- FIND-005 is the one finding carrying no guard, and is recorded as Open rather than quietly
+  omitted: the inherited seed loader hides a missing charge file behind an existence check. Its
+  guard arrives with its fix, in the Feature 1 section.

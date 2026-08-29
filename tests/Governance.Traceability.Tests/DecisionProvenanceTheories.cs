@@ -11,6 +11,9 @@ namespace Governance.Traceability.Tests;
 /// </summary>
 public class DecisionProvenanceTheories
 {
+    // PROVENANCE: FIND-007 - the first scanner read only the token following the keyword, so a
+    // marker citing a governed section before a decision registered the section and missed the
+    // decision entirely, reporting coverage it had not verified.
     // A marker line may cite more than one decision, and may cite a governed section alongside them
     // ("PROVENANCE: GOVERNANCE-2, ADR-003"), so citations are read from the whole marker line rather
     // than from the single token following the keyword.
@@ -89,9 +92,9 @@ public class DecisionProvenanceTheories
 
 
     /// <summary>
-    /// A finding the register says is held shut by a test must name that test in the source. This
-    /// is the same contract as ADR-008 applies to decisions, extended to findings: a fix that is
-    /// not guarded is a fix that can silently regress.
+    /// PROVENANCE: ADR-011 - a finding the register says is held shut by a test must name that
+    /// test in the source. This is the same contract ADR-008 applies to decisions, extended to
+    /// findings: a fix that is not guarded is a fix that can silently regress.
     /// </summary>
     [Theory]
     [MemberData(nameof(FindingsRequiringAGuard))]

@@ -110,7 +110,7 @@ public class ApiContractConformanceTheories : IClassFixture<WebApplicationFactor
     }
 
     /// <summary>
-    /// PROVENANCE: ADR-005, ADR-010 - end-to-end proof that the compensating control actually
+    /// PROVENANCE: ADR-005, ADR-010, FIND-003, FIND-004 - end-to-end proof that the control actually
     /// fires. ContractValidationTheories proves the governed limits are declared where the
     /// framework reads them; this proves the deployed pipeline rejects a violation with the 400
     /// that governance requires, rather than passing it through to a store that cannot refuse it.

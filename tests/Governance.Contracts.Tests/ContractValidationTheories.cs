@@ -6,7 +6,7 @@ using Governance.Domain.Entities;
 namespace Governance.Contracts.Tests;
 
 /// <summary>
-/// PROVENANCE: ADR-005, ADR-010 - the compensating control ADR-005 made the API layer responsible
+/// PROVENANCE: ADR-005, ADR-010, FIND-003 - the compensating control ADR-005 made the API layer responsible
 /// for. The ephemeral store cannot enforce the governance Section 2 StringLength limits, so the
 /// contract boundary must. These Theories walk the governed field table rather than sampling it:
 /// every limit governance states is proven to be mirrored on the DTO, and proven to reject.
@@ -110,7 +110,9 @@ public class ContractValidationTheories
         => Assert.Equal(expectedAccepted, IsAccepted(typeof(BatchGenerationRequestDto), "JurisdictionState", state));
 
     /// <summary>
-    /// Guards the framework constraint this suite was extended to catch: ASP.NET Core throws for a
+    /// PROVENANCE: FIND-004 - guards the framework constraint this suite was extended to catch:
+    /// annotations written as [property: ...] left the governed ceiling unevaluated and turned a
+    /// governed 400 into a 500, while every contract-level test still passed. ASP.NET Core throws for a
     /// record carrying validation metadata on a generated property rather than on its constructor
     /// parameter, so an annotation in the wrong place disables validation for the whole request.
     /// </summary>

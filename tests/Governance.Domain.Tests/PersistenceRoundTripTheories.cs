@@ -96,6 +96,10 @@ public class PersistenceRoundTripTheories
         }
     }
 
+    /// <summary>
+    /// PROVENANCE: FIND-001 - the store returned 9999999999999999.99 as 10000000000000000.
+    /// This Theory is the standing proof that no monetary value drifts in transit again.
+    /// </summary>
     [Theory]
     [MemberData(nameof(MonetaryEdgeValues))]
     public async Task Claim_charge_amount_survives_the_store_without_drift(decimal amount)
@@ -121,8 +125,10 @@ public class PersistenceRoundTripTheories
     }
 
     /// <summary>
+    /// PROVENANCE: FIND-002 - the store returned 1.00 as 1 and 0.10 as 0.1.
     /// Scale is not merely cosmetic: the 837 amount elements are rendered from these values,
     /// so a value that returns from the store with a different scale changes the emitted text.
+    /// Comparison is on the rendered string, because the numeric values were already equal.
     /// </summary>
     [Theory]
     [MemberData(nameof(MonetaryEdgeValues))]
