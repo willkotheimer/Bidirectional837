@@ -27,7 +27,7 @@ public class DecisionProvenanceTheories
     /// <summary>Governance.txt is numbered 1 to 5; a marker citing anything else cites nothing.</summary>
     private const int GovernedSectionCount = 5;
 
-    private static readonly string RepoRoot = FindRepoRoot();
+    private static readonly string RepoRoot = RepositoryRoot.Path;
 
     /// <summary>Every decision the register marks as code-bearing.</summary>
     public static IEnumerable<object[]> DecisionsRequiringAMarker() =>
@@ -188,18 +188,5 @@ public class DecisionProvenanceTheories
 
         Assert.True(register.Count > 0, $"{relativePath} contains no parseable register rows.");
         return register;
-    }
-
-    private static string FindRepoRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "governance.txt")))
-        {
-            directory = directory.Parent;
-        }
-
-        Assert.NotNull(directory);
-        return directory.FullName;
     }
 }

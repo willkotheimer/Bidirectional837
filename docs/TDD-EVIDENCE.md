@@ -1,0 +1,83 @@
+# TDD Evidence
+
+Governance Section 4 requires that unit and integration tests be *observed failing* before
+implementation code exists, and flags any implementation that passes on its first build without a
+recorded failing run as a governance violation.
+
+This is the record of those runs. One row per section, appended as each section is delivered.
+
+The raw console output is no longer versioned (ADR-020). It is written to `docs/tdd-evidence/`,
+which is ignored, and the counts below are taken from it. Two artefacts still carry the evidence
+independently of this file: the git history, in which every section is a `test(section-N)` commit
+whose tree fails followed by a `feat(section-N)` commit whose tree passes, and the pull request for
+each section, which quotes its own run.
+
+The table is enforced, not advisory. `Governance.Traceability.Tests.TddEvidenceTheories` fails the
+build if a recorded RED run has no failures, if a GREEN run has any, if a suite shrank between the
+two, or if a section reaches `docs/DECISIONS.md` or `docs/FINDINGS.md` without recording a run here.
+
+| Section | Deliverable | RED failed | RED passed | GREEN passed | GREEN failed | RED commit |
+|---------|-------------|-----------:|-----------:|-------------:|-------------:|------------|
+| 1 | Governed schema and ephemeral persistence | 164 | 26 | 190 | 0 | `842dc69` |
+| 2 | API contracts, DTO validation, decision traceability | 89 | 345 | 444 | 0 | `c856a01` |
+| 2a | Findings register and guard traceability | 6 | 462 | 468 | 0 | `65b4348` |
+| 3 | Feature 1, the synthetic bill batch generator | 187 | 509 | 710 | 0 | `baa0bcb` |
+| 4 | Feature 2, the 837 export and archival engine | 383 | 741 | 1130 | 0 | `f9523f5` |
+| 4a | Executive summary of the TDD evidence | 6 | 1135 | 1163 | 0 | `4bf27e8` |
+
+The GREEN commit is not recorded, because it cannot be: a row is written by the commit that turns
+its own section green, so that commit cannot carry its own hash. FIND-013 records the discovery. It
+is the RED commit that governance Section 4 asks for in any case — the commit whose tree was
+observed failing — and the GREEN commit that answers it is the next `feat(section-N)` commit in the
+history.
+
+The suite grows between a RED run and the GREEN run that answers it. That is expected: a new
+register row or a new source file adds cases to the traceability Theories, which are driven by
+`MemberData` over the registers and the tree. It must never shrink, and that is asserted.
+
+---
+
+## What each run proved
+
+### Section 1 — Governed schema and ephemeral persistence
+
+The failing run existed before `EphemeralClaimStore` and `ClaimsDbContext` did. It found two
+defects in the money path that inspection had not: SQLite coercing `9999999999999999.99` to
+`10000000000000000`, and trailing zeros lost so that `1.00` returned as `1`. Both are Zero-Mutation
+violations, and both are recorded as FIND-001 and FIND-002.
+
+*Passing tests in this RED run:* 26. They are reflection-only naming guards over the governance
+Section 2 transcription — the ASC X12 naming Theories in `SchemaContractTheories`, which assert that
+governed property names carry their loop and segment tokens. They drive no implementation and exist
+to fail on future drift. This is disclosed in ADR-003 and in the Section 1 pull request.
+
+### Section 2 — API contracts, DTO validation and decision traceability
+
+`docs/api/swagger.json` was authored before any controller, and the suite measures the application
+against it rather than the reverse. The run found FIND-004, which every contract-level test had
+missed: validation metadata written as `[property: ...]` on a record is ignored by ASP.NET Core, and
+a request for 5000 bills returned 500 instead of the governed 400.
+
+### Section 2a — Findings register and guard traceability
+
+The smallest RED run of the build, and deliberately so: six failures, each one a finding recorded in
+`docs/FINDINGS.md` with no test yet naming it. The section closes them.
+
+### Section 3 — Feature 1, the synthetic bill batch generator
+
+Three of the 187 failures were traceability rather than behaviour: the commit cited ADR-012,
+ADR-013 and FIND-008 before the registers defined them. That is the marker contract working, and
+the same pattern opens every section since.
+
+### Section 4 — Feature 2, the 837 export and archival engine
+
+The largest RED run so far. Two of the failures were again traceability, for ADR-018 and ADR-019.
+The run also settled the shape of the writer: the Theories requiring that the same claim serialise
+to the same bytes, and that storage identity never reach the stream, are what forbid reading the
+clock or a counter for any element the standard requires and governance does not store.
+
+### Section 4a — Executive summary of the TDD evidence
+
+Six failures, all in the new `TddEvidenceTheories`: the summary they read did not exist, and neither
+did ADR-020. The run found FIND-013, the self-reference that removed the GREEN commit column from
+this table.

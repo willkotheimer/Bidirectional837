@@ -26,6 +26,7 @@ marker cites a finding this register does not define. The convention is ADR-011.
 | [FIND-010](#find-010) | Governed timing budget met, but margin is thin and not in generation | Low | Mitigated | 3 | required |
 | [FIND-011](#find-011) | Undotted diagnosis code would round-trip into a different code | High | Mitigated | 4 | required |
 | [FIND-012](#find-012) | Delimiter guard rejected the segment that declares the delimiters | Low | Fixed | 4 | required |
+| [FIND-013](#find-013) | Evidence summary cannot record the commit that writes it | Low | Fixed | 4a | required |
 
 A finding whose Guard reads `not applicable` is one no test yet holds shut. There are none at
 present: every recorded finding is named by a test that fails if it returns.
@@ -354,3 +355,29 @@ refuses to pass vacuously.
 
 *Reportable as:* a test defect, not a product defect - but one worth recording, because the tempting
 fix was to make the writer wrong to keep the test green.
+
+## FIND-013
+
+**The evidence summary cannot record the hash of the commit that writes it.**
+Low. Fixed. Discovered 2026-08-30 while implementing ADR-020, between its RED and GREEN runs.
+
+The RED run for Section 4a asserted that each row of `docs/TDD-EVIDENCE.md` names a distinct RED
+commit and GREEN commit. It cannot. A row is written by the commit that turns its own section
+green, and no commit can contain its own hash.
+
+*Why it matters:* it is small, but it is the kind of defect that gets fixed by writing something
+untrue. The available workarounds were to leave the cell blank for the current section, to fill it
+in during the *next* section — which leaves the most recent section, the one most likely to be
+audited, as the one with no evidence — or to write a value that is not a commit.
+
+*Resolution:* the column is removed. The RED commit is the one governance Section 4 asks for, being
+the commit whose tree was observed failing, and it is knowable when the row is written. The GREEN
+commit that answers it is the next `feat(section-N)` commit in the history, which is a convention
+the log makes checkable without recording anything.
+
+*Guard:* `TddEvidenceTheories.Row_names_the_commit_whose_tree_was_observed_failing`, which still
+requires the RED commit and no longer requires what cannot exist.
+
+*Reportable as:* a control that would have been satisfied by a plausible-looking placeholder. The
+Theory would have passed against any seven hex characters, so the defect was in what the assertion
+could be made true by, not in whether it passed.
