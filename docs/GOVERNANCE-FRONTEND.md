@@ -136,27 +136,6 @@ The project is **`src/Translator.UI`**, alongside the .NET projects and outside 
 
 ---
 
-## 4b. Downloads
-
-When the client produces a CSV or an 837 ZIP, **the link to it stays on screen** rather than
-vanishing once the browser has taken the file.
-
-*One correction, because the obvious reading is not possible.* A web page cannot link to the user's
-downloads folder. It never learns the path the browser chose, and `file://` navigation from an
-`https://` page is blocked. So "keep a link pointing at the downloads folder" cannot be built by
-anyone, in any framework.
-
-What satisfies the intent: hold the generated `Blob` and keep its object URL on screen, so the link
-re-opens or re-saves the exact bytes that were downloaded. The artefact stays reachable for the life
-of the page, which is what the requirement is actually for.
-
-Two rules follow. The label says what it is — filename, what it contains, when it was made — because
-a bare "download" link a second time is indistinguishable from the first. And object URLs are
-revoked when the page clears its store, since they pin the whole blob in memory and a 500-claim
-archive is not small.
-
----
-
 ## 5. State and persistence
 
 **Local storage is the only thing that ever saves a bill, and it is cleared on page load.** Nothing

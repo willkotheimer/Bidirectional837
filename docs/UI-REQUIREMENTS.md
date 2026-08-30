@@ -92,14 +92,15 @@ request/response and a 500-bill generation returns in about a second, so a track
 invented stages would be the UI telling the user something it does not know. If the operations ever
 become genuinely long-running, this needs a real progress channel rather than a timer.
 
-## Downloads stay reachable
+## Downloads — deferred
 
-A CSV or 837 ZIP the client produces keeps a visible link after the browser has taken it, labelled
-with what it is rather than a bare "download".
+A download is a download: the browser takes the file and the page moves on. Keeping the artefact
+reachable afterwards is out of scope for the MVP.
 
-The link cannot point at the user's downloads folder — a page never learns that path and `file://`
-navigation is blocked from `https://`. It points at the retained blob instead, which re-opens the
-same bytes. See `docs/GOVERNANCE-FRONTEND.md` §4b.
+Noted so it is not re-proposed in the form it was first raised: a link *to the downloads folder*
+cannot be built. A page never learns the path the browser chose, and `file://` navigation is blocked
+from `https://`. If reachable downloads come back, the shape is a retained blob and its object URL,
+not a filesystem path.
 
 ## Example data, said out loud
 
