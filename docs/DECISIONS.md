@@ -37,6 +37,8 @@ define. The convention itself is ADR-008.
 | [ADR-018](#adr-018) | X12 numerics are rendered without scale and read back at it | Accepted | 4 | required |
 | [ADR-019](#adr-019) | ICD-10 codes are stored dotted and emitted undotted | Accepted | 4 | required |
 | [ADR-020](#adr-020) | Run logs are summarised in the repository, not versioned | Accepted | 4a | required |
+| [ADR-021](#adr-021) | The reader refuses what it cannot map exactly | Accepted | 5 | required |
+| [ADR-022](#adr-022) | An import applies whole or not at all | Accepted | 5 | required |
 
 ---
 
@@ -526,3 +528,47 @@ A section cannot escape the per-row checks by omitting its row.
 
 *Consequence:* see FIND-013. The summary cannot record the hash of the commit that writes it, so the
 GREEN commit is identified by convention rather than by hash.
+
+## ADR-021
+
+**The reader refuses anything it cannot map exactly, rather than salvaging what it can.**
+Claude Opus 5, 2026-08-30.
+
+Governance User Story 3.1 requires integration tests with malformed files, without saying what
+should happen to one. Two readings are available: read what can be read, or read nothing.
+
+The reader reads nothing. A partially read claim is worse than a rejected file, and the reason is
+the Section 1 Reversibility Guarantee rather than tidiness. A partial claim reaches the store, and
+from that moment it is indistinguishable from a claim that arrived whole. It re-exports as a
+well-formed 837 that says something the sender never said, and every downstream check passes,
+because the file is valid — it is simply not the file that was sent.
+
+So the reader validates before it maps: the envelope must balance and its counts must be true, the
+transaction must be an 837 Professional rather than an 835 remittance carrying CLM-like segments,
+every required segment must be present, every element must be a value its governed column can hold,
+and the claim total must agree with its own service lines. Each refusal names the segment at fault,
+because governance requires malformed files to be *handled*, and a reader handed "input string was
+not in a correct format" cannot act on it.
+
+The CLM02 check deserves its own note. CLM02 and the SV102 amounts state the same fact twice, and
+governance User Story 1.2 requires them to agree. A file where they disagree cannot be stored
+without choosing which to believe, and either choice is a mutation the import introduced rather than
+one it found.
+
+## ADR-022
+
+**An import applies whole or not at all.**
+Claude Opus 5, 2026-08-30.
+
+The whole payload is read and parsed before anything is written, and one unreadable file rejects the
+upload entire.
+
+The alternative — import what parses, report what did not — is superficially friendlier and is the
+worse failure. A partially applied batch leaves the store holding claims the sender never
+successfully sent, mixed indistinguishably with ones they did, and the sender's natural response is
+to correct the bad file and upload the batch again, which duplicates everything that succeeded the
+first time.
+
+The response to a successful import is read back out of the store rather than built from the parsed
+objects. The store is the layer FIND-001 and FIND-002 were found in, and a response assembled from
+what went in would report a mutation the store had introduced as though it had not happened.

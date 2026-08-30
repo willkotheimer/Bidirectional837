@@ -24,6 +24,7 @@ two, or if a section reaches `docs/DECISIONS.md` or `docs/FINDINGS.md` without r
 | 3 | Feature 1, the synthetic bill batch generator | 187 | 509 | 710 | 0 | `baa0bcb` |
 | 4 | Feature 2, the 837 export and archival engine | 383 | 741 | 1130 | 0 | `f9523f5` |
 | 4a | Executive summary of the TDD evidence | 6 | 1135 | 1163 | 0 | `4bf27e8` |
+| 5 | Feature 3, ingestion, parsing and the reversibility proof | 191 | 1185 | 1393 | 0 | `e7588ac` |
 
 The GREEN commit is not recorded, because it cannot be: a row is written by the commit that turns
 its own section green, so that commit cannot carry its own hash. FIND-013 records the discovery. It
@@ -75,6 +76,17 @@ The largest RED run so far. Two of the failures were again traceability, for ADR
 The run also settled the shape of the writer: the Theories requiring that the same claim serialise
 to the same bytes, and that storage identity never reach the stream, are what forbid reading the
 clock or a counter for any element the standard requires and governance does not store.
+
+### Section 5 — Feature 3, ingestion, parsing and the reversibility proof
+
+The run that closed the round trip, and the largest of the build. It found three defects that
+mattered and one that was only embarrassing. FIND-014: a governed decimal carries no canonical
+scale until it has passed through the store or the reader, so the verifier reported a
+representation difference as a mutation. FIND-015: the malformed-file suite was passing for a
+reason unrelated to the damage it applied, and one of its own helpers was matching a segment
+identifier inside the receiver name. FIND-016: problem documents had been served as
+application/json since the contract was published in Section 2, and no test had ever asserted a
+media type.
 
 ### Section 4a — Executive summary of the TDD evidence
 

@@ -187,3 +187,30 @@ data is deterministic and synthetic, contains no PHI, and is generated in-proces
 - Two pointers in `docs/DECISIONS.md` that named the deleted `docs/tdd-evidence/README.md` and
   directory now name `docs/TDD-EVIDENCE.md`. The decisions themselves are unchanged; a register with
   dead pointers is worse than one with corrected ones.
+
+### Section 5 — Feature 3, ingestion, parsing and the reversibility proof (2026-08-30)
+
+- Implemented governance Feature 3: EDI ingestion and translation (User Story 3.1) and zero-mutation
+  verification (User Story 3.2). `POST /api/v1/claims/import` and
+  `POST /api/v1/claims/{id}/verify-reversibility` now have engines behind them. No published
+  operation answers 501 any longer.
+- Recorded RED: 191 failed / 1185 passed. Recorded GREEN: 1393 passed / 0 failed. Both are in
+  `docs/TDD-EVIDENCE.md`, and the evidence guard caught a bookkeeping error in the GREEN count
+  before it was committed.
+- The governance Section 4 Roundtrip Reversibility Test Standard is satisfied at its strict reading:
+  Import then Export reproduces the original interchange byte for byte, over every claim in the
+  corpus, and re-importing the regenerated file yields an identical record. The strict reading is
+  available because the writer is a pure function of the record (ADR-016).
+- The reader takes its delimiters from the ISA segment positionally, as the standard directs, so an
+  interchange written with any delimiter set is read by the ones it declares rather than the ones
+  this build happens to emit.
+- Two decisions: ADR-021, the reader refuses what it cannot map exactly rather than salvaging part
+  of it; ADR-022, an import applies whole or not at all.
+- Three findings, and two of them were only visible because a test was strict. FIND-014: a governed
+  decimal has no canonical scale in memory, so the verifier reported representation as mutation.
+  FIND-015: the malformed-file suite was passing for a reason unrelated to the damage it applied,
+  and its own repair helper was matching a segment identifier inside the receiver name — twelve
+  Theories that had never tested what they claimed. FIND-016: problem documents had been served as
+  `application/json` since Section 2, because a class-level `[Produces]` is a result filter rather
+  than documentation, and nothing had ever asserted a response media type.
+- Data provenance: no new external data, no PHI. The corpus remains synthetic and in-process.
