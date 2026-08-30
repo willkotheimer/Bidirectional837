@@ -320,3 +320,15 @@ copyright, and both exclusions are asserted by `CatalogIntegrityTheories` rather
   would compile until the old assembly stopped being produced.
 - No behaviour changed. Recorded RED: 119 failed / 1902 passed, the failures being the naming rule
   itself. Recorded GREEN: see `docs/TDD-EVIDENCE.md`.
+
+### Frontend governance approved (2026-08-30)
+
+- `docs/GOVERNANCE-FRONTEND.md` was drafted at the project owner's request and approved by them the
+  same day. It is binding from that point. It governs the React client only, derives its authority
+  from the two clauses of `governance.txt` Section 1 that already bind the frontend, and cannot amend
+  `governance.txt` - departures from either remain ADRs.
+- Recorded alongside it: governance Feature 3's two acceptance criteria are both already met by
+  Section 5. User Story 3.2 asks for an automated test rather than a screen, and that test is green.
+  The word "Dashboard" appears only in the feature title and in User Story 3.1's "so that they
+  display on the Imported Bills Dashboard", which the 837 to Model tab satisfies. Surfacing the
+  per-claim reversibility verdict in the UI is therefore an open choice, not an unmet requirement.

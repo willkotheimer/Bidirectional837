@@ -1,8 +1,8 @@
 # Frontend Governance
 
-**Status: proposed, awaiting the project owner's approval.** Drafted by Claude Opus 5, 2026-08-30.
-Nothing in this document binds until the owner accepts it. `governance.txt` was authored by Gemini AI
-and is binding as written; this document does not amend it and cannot.
+**Status: approved by the project owner, 2026-08-30. Binding.** Drafted by Claude Opus 5.
+`governance.txt` was authored by Gemini AI and is binding as written; this document does not amend it
+and cannot. Departures from either are ADRs in `docs/DECISIONS.md`.
 
 ---
 
@@ -229,11 +229,15 @@ ungoverned half.
 
 ## 10. Open for the owner
 
-1. **Approve or amend this document.** It is proposed, not in force.
-2. **FIND-020** — the serializer fix in §3.2. It changes the payload every existing API test reads,
-   so it is a backend section of its own and should land before any client code.
-3. **The Reversibility Dashboard.** Governance Feature 3 names one; `docs/UI-REQUIREMENTS.md`
-   describes an import table instead. Recorded there as a deliberate omission — worth confirming.
+1. **FIND-020** — the serializer fix in §3.2. It changes the payload every existing API test reads,
+   so it lands before any client code.
+2. **The reversibility verdict has no home in the UI.** Both of governance Feature 3's acceptance
+   criteria are already met — 3.2 asks for an automated test, not a screen, and that test is green.
+   "Dashboard" appears only in the feature's title and in 3.1's "so that they display on the Imported
+   Bills Dashboard", which the 837 → Model tab satisfies. So this is an open choice rather than an
+   unmet requirement: whether the imported table surfaces the per-claim verdict that
+   `POST /api/v1/claims/{id}/verify-reversibility` already returns. If it does, §9 governs how —
+   the two booleans are shown separately or not at all.
 
 *Settled since drafting:* the project is `src/Translator.UI`; there is no progress tracker for now;
 local storage is the only store and clears at page load.
