@@ -18,42 +18,90 @@ These are requirements, not decisions. Decisions taken in building against them 
 
 ## Persistence
 
-Nothing persists beyond the table on screen. No local storage, no session restore, no state kept
-across a page refresh. The only client state worth keeping is what the current table is showing.
+**Local storage is the only thing that ever saves a bill, and it clears on page load and refresh.**
 
-This sits with ADR-015 rather than against it: the store is already ephemeral and a restart is
-already a clean slate, so a client that remembered more than the server does would be showing
-claims that no longer exist.
+So the effect is a clean slate every time the page opens, and the mechanism is one named place rather
+than component state. Both tabs read and write the same store, which is why it exists: the
+837 → Model table and the Model → 837 table are two views over one working set, not two islands.
 
-## Bill creation
+Rules that follow from it:
+
+- **Clearing happens before the first read**, at startup, not on unload. An unload handler does not
+  run reliably — a crashed tab, a killed process or a hard refresh can all skip it, and the next load
+  would then show bills from a previous session.
+- **Every access is wrapped.** Local storage throws rather than returning null in a private window or
+  where site data is blocked, and the page must still work with no store at all.
+- **Nothing else persists.** No session storage, no IndexedDB, no cookies, no restore of form state.
+
+This agrees with the server rather than merely being tidy: ADR-015 makes the store ephemeral and a
+process restart a clean slate, so a client remembering more than the server does would show claims
+that no longer exist.
+
+*Recorded honestly:* bills do briefly exist on disk in the browser profile, between being written and
+the next page load clearing them. That is acceptable here and would not be everywhere — subscriber
+names are drawn from a synthetic list and no real patient data enters the system, so there is no PHI
+to leak. If that ever stops being true, this rule stops being safe.
+
+## Shape
+
+**One page, two tabs.** Both directions of the translator, side by side, because the point of the
+application is that the two are inverses.
+
+| Tab | Direction | Ends in |
+|-----|-----------|---------|
+| **837 → Model** | Upload an 837 file or a ZIP of them | A table |
+| **Model → 837** | Fill in a form, generate | A download button |
+
+Nothing else is a top-level destination. The Imported Bills Dashboard governance Feature 3 names is
+the 837 → Model table, not a third place.
+
+## Tab: Model → 837
 
 Formik (`useFormik`) for the generation form.
 
 | Control | Behaviour |
 |---------|-----------|
 | Number of bills | Dropdown, up to 500. The governed ceiling is 500 and the API returns 400 above it, so the control must not offer a number the server will refuse. |
-| Medical codes | Dropdown, **searchable, and scannable by top-level category**. Selecting a category selects everything under it: "500 cardiac bills" must be a two-interaction task, not fifteen. |
-| State | Dropdown. The selection governs the provider, which the server already does — jurisdiction state drives the NPI registry lookup and the synthetic fallback (ADR-012). |
+| Medical codes | Dropdown, **searchable, and scannable by top-level category**. Selecting a category selects everything under it: "500 cardiac bills" must be a two-interaction task, not fifteen. Fed by `GET /api/v1/codes`. |
+| State | Dropdown, fed by `GET /api/v1/jurisdictions`. The selection governs the provider, which the server already does — jurisdiction drives the NPI snapshot lookup. |
 
-Subscriber names are made up, and charges are the standard charge for the procedure. Both are
-already true server-side and neither is a client concern: the synthetic name list and the charge
-schedule live in `Translator.Generation`, and the charge fallback is deterministic (ADR-013).
+Subscriber names are made up and charges are standard for the procedure. Both are already true
+server-side; neither is a client concern.
 
-**Flow.** Creation is local first: the generated batch populates a React table on screen. From
-there, one button exports to CSV and one to 837.
+**Flow.** Generation is local-first: the batch populates a table on screen. From there one button
+exports CSV and one exports 837. The 837 export is `GET /api/v1/claims/export-zip`, a ZIP of one file
+per claim (ADR-017). CSV is a view of the table, not a governed artefact, and no 837 fidelity claim
+attaches to it.
 
-The 837 export is `GET /api/v1/claims/export-zip`, which returns a ZIP of one 837 file per claim
-(ADR-017). CSV is a client-side concern — it is a view of the table, not a governed artefact, and
-no 837 fidelity claim attaches to it.
+## Tab: 837 → Model
 
-## 837 to bill
-
-- Accepts a single 837 file or a batch. `POST /api/v1/claims/import` already takes either and
-  detects which by the payload's own ZIP signature rather than by filename.
-- Renders the result as a table, exportable to CSV.
+- Accepts a single 837 file or a batch. `POST /api/v1/claims/import` already takes either and detects
+  which from the payload's own ZIP signature rather than from a filename.
+- Renders the reconstructed claims as a table, exportable to CSV.
 - A rejected import applies nothing (ADR-022), so the error path shows the problem document's
   `detail` and leaves the table as it was. Those messages name the segment at fault (ADR-021), so
   they are worth surfacing verbatim rather than replacing with "import failed".
+
+## Progress tracker
+
+Both tabs show progress while the user waits, with information about what the backend is doing.
+
+**It must not invent stages it cannot observe.** This is the one requirement here with a trap in it.
+The API is request/response: there is no progress stream, and a 500-bill generation returns in about
+a second. A tracker animating through "Validating… Generating… Persisting…" on a timer is a UI
+telling the user something it does not know, which is the same class of dishonesty as a reversibility
+tick that collapses two verdicts into one.
+
+Two honest options, and the choice is the project owner's:
+
+1. **Narrate what is genuinely observable client-side** — request sent, response received, parsing,
+   rendering — and describe the governed backend steps as *what this operation does* rather than as
+   *what is happening right now*. No fabricated timing. Costs nothing and needs no backend change.
+2. **Report real server progress**, which needs a streaming or polling endpoint the contract does not
+   have. That is a backend section, and for a one-second operation it is a large amount of machinery
+   for a small amount of truth.
+
+Option 1 is recommended unless the owner wants the operations to be genuinely long-running later.
 
 ## Example data, said out loud
 

@@ -33,9 +33,12 @@ marker cites a finding this register does not define. The convention is ADR-011.
 | [FIND-017](#find-017) | Live NPI registry query was never answerable; fallback was permanent | High | Fixed | 6 | required |
 | [FIND-018](#find-018) | Latching fallback would disable a local source after one miss | Medium | Fixed | 6 | required |
 | [FIND-019](#find-019) | Seed reader documented an assumption the data outgrew | Medium | Fixed | 7 | required |
+| [FIND-020](#find-020) | Governed field names mangled on the wire since Section 2 | High | Open | 8 | required |
 
 A finding whose Guard reads `not applicable` is one no test yet holds shut. There are none at
-present: every recorded finding is named by a test that fails if it returns.
+present: every recorded finding is named by a test that fails if it returns. FIND-020 is recorded as
+**Open** rather than Fixed - its guard exists and is failing, which is what a finding under repair
+looks like in this register.
 
 Severity is judged by consequence to the governance Section 1 Reversibility Guarantee and to data
 correctness, not by effort to fix.
@@ -616,3 +619,51 @@ was. The finding stays **Mitigated** rather than closed, because its substance w
 the budget is still spent almost entirely on persistence and serialisation, which governance does not
 name, so a slower machine could still breach the end-to-end assertion while the governed requirement
 stays comfortably met. What has changed is that the headroom is no longer thin.
+
+## FIND-020
+
+**Every governed field name is mangled on the wire, and has been since the contract was published.**
+High. Open — the guard exists and fails; the fix is Section 8's GREEN. Discovered 2026-08-30 while
+drafting `docs/GOVERNANCE-FRONTEND.md`.
+
+`docs/api/swagger.json` declares the governed ASC X12 names. The application serves something else:
+
+| Contract publishes | Application serves |
+|--------------------|--------------------|
+| `CLM02_TotalClaimChargeAmount` | `clM02_TotalClaimChargeAmount` |
+| `BHT03_ClaimSubmitterTransactionId` | `bhT03_ClaimSubmitterTransactionId` |
+| `Loop2010AA_NM103_BillingProviderLastNameOrOrg` | `loop2010AA_NM103_BillingProviderLastNameOrOrg` |
+
+ASP.NET Core's default camelCase policy lowercases the leading character of a name, and on a name
+beginning with an acronym that produces `clM02_`, `bhT03_`, `hI01_2_`.
+
+*Why it matters:* governance Section 1 is explicit — "Attribute names across the database, DTOs, and
+React forms must reflect ASC X12 nomenclature ... If a field is named otherwise, it requires a
+documented mapping attribute linking it directly to its 837 segment counterpart." `clM02_` is not
+ASC X12 nomenclature and has no documented mapping. The database column is right, the entity is
+right, the DTO is right, the published contract is right, and the payload — the only one of them a
+client ever sees — is wrong.
+
+It is High rather than Medium because of what happens next. The React client is about to be written,
+governance binds *React forms* to the same names, and every component written against `clM02_` would
+carry the mangling into the frontend, where it would be far more work to remove than a serializer
+setting.
+
+*How it survived:* the conformance suite has checked routes and status codes since Section 2 and
+media types since FIND-016, and has never checked a field name. Worse, the existing API Theories
+*read* the mangled names — `claim.GetProperty("clM02_TotalClaimChargeAmount")` — so the suite encodes
+the defect and would fail if it were fixed. They are a record of the bug, not a guard against it.
+This is the third time in this build that a control was proven only at the layer that declares it
+(FIND-004, FIND-016), and the second time a test agreed with the code about a shared mistake
+(FIND-017).
+
+*Resolution:* serialise with the declared names rather than a naming policy, and correct the Theories
+that encode the mangled form. After that the governed name is identical in the column, the entity,
+the DTO, the contract, the payload and the React state, which is what Section 1 asks for.
+
+*Guard:* `ContractNamingTheories` — every property the contract publishes must appear in the served
+claim, no served property may be absent from the contract, and the governed names are additionally
+asserted literally, so a contract quietly edited to match a mangled payload would still fail.
+
+*Reportable as:* a naming rule stated in the first paragraph of the governance document, satisfied at
+four layers out of five, and broken at the only one that is externally visible.
