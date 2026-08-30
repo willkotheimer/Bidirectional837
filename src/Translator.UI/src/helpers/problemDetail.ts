@@ -15,10 +15,30 @@ export interface ProblemDocument {
   errors?: Record<string, string[]>;
 }
 
+const meaningful = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim().length > 0;
+
 /**
  * The message to show a user for a failed request: the server's own words where it gave any, and a
  * statement of what failed where it gave none.
+ *
+ * `detail` is preferred over `title` because `title` is the status phrase - "Bad Request" tells a
+ * user nothing they did not already know from the request having failed.
  */
-export function messageFor(_problem: unknown, _fallback: string): string {
-  throw new Error('not implemented');
+export function messageFor(problem: unknown, fallback: string): string {
+  if (problem === null || typeof problem !== 'object') return fallback;
+
+  const document = problem as ProblemDocument;
+
+  if (meaningful(document.detail)) return document.detail.trim();
+  if (meaningful(document.title)) return document.title.trim();
+
+  // Model validation answers with a map of field to messages rather than a detail. Every message is
+  // shown: a form rejected for two reasons should not report one of them.
+  const validation = Object.values(document.errors ?? {})
+    .flat()
+    .filter(meaningful)
+    .map((message) => message.trim());
+
+  return validation.length > 0 ? validation.join(' ') : fallback;
 }

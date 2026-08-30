@@ -1,32 +1,41 @@
-# React + TypeScript + Vite
+# Translator.UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The React client for the 837 translator. Governed by [`docs/GOVERNANCE-FRONTEND.md`](../../docs/GOVERNANCE-FRONTEND.md),
+which is binding.
 
-Currently, two official plugins are available:
+## Running it
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The API must be running, **in Development**, before the client can reach it:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```
+ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5000 \
+  dotnet run --project src/Translator.Api --no-launch-profile
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+The environment matters. ADR-028 grants CORS to `http://localhost:5173` and withholds it entirely in
+Production, because a deployed instance serves the client from its own origin and needs no grant. An
+API started without an environment defaults to Production, and every call from the client is then
+refused by the browser — correctly, but confusingly if you were not expecting it.
+
+Then:
+
+```
+npm install
+npm run dev      # http://localhost:5173, pinned - it is the origin the API grants
+npm test         # vitest
+npm run build    # tsc -b && vite build
+```
+
+`VITE_API_BASE_URL` overrides the API address, which defaults to `http://localhost:5000`.
+
+## Layout
+
+| Path | What lives there |
+|------|------------------|
+| `src/data/` | The only code that talks to the server. One hook per published operation. |
+| `src/helpers/` | Pure functions: CSV, governed-column formatting, the problem-document reader, the store. |
+| `src/components/` | Presentation. |
+| `src/tests/Helpers/` | Every helper's tests, driven by `it.each` over tables of variants. |
+
+Helpers carry the testable logic deliberately: a function taking values and returning values can be
+tested directly, while the same logic inside a component can only be tested through the DOM.

@@ -29,6 +29,7 @@ two, or if a section reaches `docs/DECISIONS.md` or `docs/FINDINGS.md` without r
 | 7 | Priced code catalogue and the routes that serve it | 16 | 1862 | 1889 | 0 | `fbb541b` |
 | 7a | Governance names the guardrails; the application is Translator | 119 | 1902 | 2026 | 0 | `f7dfb7e` |
 | 8 | Frontend governance, and the wire-naming defect it found | 37 | 2039 | 2085 | 0 | `f503b51` |
+| 9 | The client: scaffold, helpers, data layer, Model → 837 | 73 | 2124 | 2247 | 0 | `d623a07` |
 
 The GREEN commit is not recorded, because it cannot be: a row is written by the commit that turns
 its own section green, so that commit cannot carry its own hash. FIND-013 records the discovery. It
@@ -80,6 +81,25 @@ The largest RED run so far. Two of the failures were again traceability, for ADR
 The run also settled the shape of the writer: the Theories requiring that the same claim serialise
 to the same bytes, and that storage identity never reach the stream, are what forbid reading the
 clock or a counter for any element the standard requires and governance does not store.
+
+### Section 9 — The client: scaffold, helpers, data layer, Model → 837
+
+The first section spanning two suites, so the counts are both together: 105 Vitest and 2142 xUnit at
+GREEN. The .NET side grew by 39 without a line of C# changing, because the marker scanner reaches
+`.ts` and `.tsx` now and the client's provenance markers are checked like everything else.
+
+Disclosed, because the protocol is the point of it: the helper tests were written first and observed
+failing at 46, then implemented, and only afterwards was it noticed that no RED tree had been
+committed. The implementations were set aside and the stubs restored so the RED commit's tree
+genuinely fails, which it does. The recorded RED is honest; the helpers reached it by a longer route
+than the protocol intends, and the later store and component tests did not.
+
+Two defects were caught by the rules rather than by a test. Clearing the store at module scope runs
+once per *process* - once per page load in a browser, but not under test or hot reload - so a stale
+store would have survived exactly where it is hardest to notice; the frontend governance rule that
+an effect is only for a genuine side effect is what forced the question. And the CORS grant was
+verified against a Production host first, where ADR-028 withholds it deliberately, which confirmed
+the exclusion works before the Development path was checked.
 
 ### Section 8 — Frontend governance, and the wire-naming defect it found
 

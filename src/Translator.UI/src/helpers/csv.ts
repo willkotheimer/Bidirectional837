@@ -1,4 +1,4 @@
-import type { ClaimHeader } from './claimFields';
+import { CLAIM_COLUMNS, displayValue, type ClaimHeader } from './claimFields';
 
 /**
  * PROVENANCE: ADR-027 - CSV is a view of the table, not a governed artefact. The 837 is the governed
@@ -15,13 +15,17 @@ const NEEDS_QUOTING = /[",\r\n]/;
  * was real. A CSV writer that does not quote is the same defect facing the other way: provider
  * names contain commas, and CMS descriptions contain both commas and quotes.
  */
-export function csvField(_value: unknown): string {
-  throw new Error('not implemented');
+export function csvField(value: unknown): string {
+  if (value === null || value === undefined) return '';
+
+  const text = String(value);
+
+  return NEEDS_QUOTING.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
 /** A CSV row from already-prepared fields. */
-export function csvRow(_fields: readonly unknown[]): string {
-  throw new Error('not implemented');
+export function csvRow(fields: readonly unknown[]): string {
+  return fields.map(csvField).join(',');
 }
 
 /**
@@ -32,6 +36,9 @@ export function csvRow(_fields: readonly unknown[]): string {
  * survive into anything downstream, and a column called "Total Claim Charge Amount" has lost the
  * link to CLM02 that the governed name carries.
  */
-export function claimsToCsv(_claims: readonly ClaimHeader[]): string {
-  throw new Error('not implemented');
+export function claimsToCsv(claims: readonly ClaimHeader[]): string {
+  const heading = csvRow(CLAIM_COLUMNS);
+  const rows = claims.map((claim) => csvRow(CLAIM_COLUMNS.map((column) => displayValue(claim, column))));
+
+  return [heading, ...rows].join('\n');
 }
