@@ -31,6 +31,7 @@ two, or if a section reaches `docs/DECISIONS.md` or `docs/FINDINGS.md` without r
 | 8 | Frontend governance, and the wire-naming defect it found | 37 | 2039 | 2085 | 0 | `f503b51` |
 | 9 | The client: scaffold, helpers, data layer, Model → 837 | 73 | 2124 | 2247 | 0 | `d623a07` |
 | 10 | The 837 → Model uploader, the reversibility verdict, and colour | 1 | 105 | 2286 | 0 | `e10b5ca` |
+| 11 | One host for the client and the API, declared in Bicep | 15 | 2184 | 2205 | 0 | `7e9c1f7` |
 
 The GREEN commit is not recorded, because it cannot be: a row is written by the commit that turns
 its own section green, so that commit cannot carry its own hash. FIND-013 records the discovery. It
@@ -82,6 +83,19 @@ The largest RED run so far. Two of the failures were again traceability, for ADR
 The run also settled the shape of the writer: the Theories requiring that the same claim serialise
 to the same bytes, and that storage identity never reach the stream, are what forbid reading the
 clock or a counter for any element the standard requires and governance does not store.
+
+### Section 11 — One host for the client and the API, declared in Bicep
+
+The topology changed mid-section and the tests changed with it. A Static Web App plus an App Service
+was built first; the project owner observed that an App Service takes the name you give it while a
+Static Web App's is generated, which was the better point. One site now serves both, which makes
+ADR-028's original reasoning true as written rather than a workaround.
+
+A SPA fallback was written and then removed, and the removal was forced by a test from Section 2.
+`Route_outside_the_published_contract_is_not_served` has asserted since the contract was published
+that an unlisted route is not served; with a fallback every route was served, and /WeatherForecast
+answered 200 with a page. The client has no router and needs no fallback, so a nine-section-old guard
+outranked a convenience nobody had asked for.
 
 ### Section 10 — The 837 → Model uploader, the reversibility verdict, and colour
 

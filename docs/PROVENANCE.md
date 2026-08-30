@@ -446,3 +446,28 @@ Image added in this section:
   source; this one does not yet. It should be completed before anything is published.
 - An earlier generated image was used first and replaced. Its caption said "Illustration, generated"
   and would have been false of this one, so it was rewritten rather than carried over.
+
+### Section 11 — One host for the client and the API, declared in Bicep (2026-08-30)
+
+- Deployed and verified live at https://bidirectional837.azurewebsites.net. The full governed loop
+  was exercised against it: generate, export, import, verify - the reversibility verdict returning
+  text identical, record identical, no differences, against a real Ohio provider drawn from the NPPES
+  snapshot.
+- One App Service serves the client and the API. The topology changed mid-section: a Static Web App
+  plus an App Service was built first, and the project owner observed that an App Service takes the
+  name you give it while a Static Web App's hostname is generated. That was the better point, and it
+  had a consequence beyond the address - one origin makes ADR-028's original reasoning true as
+  written, so there is no cross-origin grant anywhere (ADR-031, ADR-032).
+- No recurring cost. The App Service plan already existed, already hosted three applications, and is
+  referenced rather than created - deleting this deployment must not take another application down.
+- A SPA fallback was written and removed. It answered every unrecognised path with the client shell,
+  which broke `Route_outside_the_published_contract_is_not_served` - a guard that has held the
+  published surface since Section 2. The client has no router and needs no fallback, so the
+  nine-section-old assertion outranked the convenience.
+- ADR-015 is now felt rather than theoretical. Always On is set, without which the platform idles the
+  app out and a generated batch disappears between two clicks. That does not make the store durable;
+  it moves the loss from twenty minutes of inactivity to a restart, and the limit is recorded.
+
+**Outstanding, and worth raising:** `dotnet publish` warns that `Microsoft.OpenApi 2.0.0` carries a
+known high-severity advisory (GHSA-v5pm-xwqc-g5wc). It has warned locally since Section 2; it now
+sits on a public URL, which changes what it means. It should be upgraded.

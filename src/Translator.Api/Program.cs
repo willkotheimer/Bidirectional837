@@ -103,9 +103,31 @@ if (!app.Environment.IsProduction())
 // No UseHttpsRedirection: TLS terminates at the Azure ingress in the deployed topology, and an
 // in-process redirect would make the served OpenAPI document unreachable to the test host.
 
+// PROVENANCE: ADR-032 - the client is served from this origin, which is what makes ADR-028's
+// reasoning true as written: there is no cross-origin call, so there is no grant to make.
+//
+// Order matters here. Static files are served before routing, so a real asset is returned without
+// the router looking at it; the fallback is registered after MapControllers, so a published route
+// always wins over the client's shell.
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseAuthorization();
 
 app.MapControllers();
+
+// PROVENANCE: ADR-032 - deliberately no SPA fallback.
+//
+// One was written first and removed. A fallback answers every unrecognised path with the client's
+// shell, which is right for a client that routes in the browser and wrong here: this one is a single
+// page with tabs and no router, so there are no deep links to rescue. UseDefaultFiles already serves
+// the shell at the root, which is the only path that needs it.
+//
+// It also broke a governed assertion, which is how it was caught. ApiContractConformanceTheories has
+// asserted since Section 2 that a route outside the published contract is not served, and with a
+// fallback every route was served - /WeatherForecast answered 200 with a page. A test that has
+// guarded the published surface for nine sections is better evidence than a convenience nobody asked
+// for.
 
 app.Run();
 
