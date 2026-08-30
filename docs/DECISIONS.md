@@ -47,6 +47,8 @@ define. The convention itself is ADR-008.
 | [ADR-028](#adr-028) | Cross-origin access granted to the development client only | Accepted | 8 | required |
 | [ADR-029](#adr-029) | Governed timestamps are stored and returned as UTC | Accepted | 8 | required |
 | [ADR-030](#adr-030) | The header image says what it is, whatever it is | Accepted | 10 | required |
+| [ADR-031](#adr-031) | The deployment is declared in Bicep and measured by test | Accepted | 11 | required |
+| [ADR-032](#adr-032) | Production CORS moves to the platform, granting one origin | Accepted | 11 | required |
 
 ---
 
@@ -825,3 +827,57 @@ wants it.
 `docs/PROVENANCE.md` — the entry names what is known and marks the source as owed by the project
 owner. A licensed asset with no recorded licence is exactly the gap this project's provenance
 discipline exists to close.
+
+## ADR-031
+
+**The deployment is declared in Bicep, and the declaration is measured against the code it deploys.**
+Claude Opus 5, 2026-08-30.
+
+Governance Section 1's build order named a Bicep deployment from the start, and ADR-015 said its
+consequences would be carried into that section. This is it.
+
+*What is declared:* a Static Web App on the free plan for the client, and a Linux web app for the
+API. *What is referenced but never declared:* the App Service plan. It already exists, already hosts
+another application, and is already paid for, so this project adds no recurring cost — and deleting
+this deployment must not take somebody else's application down with it. A template that created its
+own plan would do exactly that.
+
+*Why the template is tested.* Infrastructure fails differently from code: quietly, in a subscription
+nobody is watching, and the first symptom is usually a page that loads and does nothing.
+`DeploymentTheories` asserts the properties whose absence is invisible until a user hits them — that
+the declared runtime still matches `Translator.Api.csproj`, that the CORS grant names the site
+deployed beside it rather than a wildcard, that the API is HTTPS-only, that no secret is committed,
+and that the static site stays on the free plan, because an upgrade is one word in a template and
+shows up on a bill rather than in a review.
+
+The runtime check reads the framework out of the project file rather than repeating it, so it cannot
+go stale. That is the drift that costs an afternoon: the project moves to a new framework, the
+template does not, and the app fails to start with a message naming neither file.
+
+*ADR-015, felt at last.* The claim store is an in-memory SQLite database held by a singleton, so it
+exists only while the process does. The template sets Always On, without which the platform idles
+the app out and a generated batch disappears between two clicks. That does not make the store
+durable — it moves the loss from twenty minutes of inactivity to a restart — and the limitation is
+recorded rather than papered over. Making it durable is a governance Section 2 change and the
+project owner's to make.
+
+## ADR-032
+
+**In Production the cross-origin grant belongs to the platform, and names exactly one origin.**
+Claude Opus 5, 2026-08-30.
+
+*Amends the reasoning of ADR-028, not its rule.* That decision withheld the application's CORS grant
+in Production on the grounds that a deployed instance "serves the client from its own origin, or sits
+behind an ingress that does". That turns out not to be true here. A Static Web App on the free plan
+serves static files and cannot proxy to a bring-your-own backend — that requires the standard plan —
+so the client calls the API cross-origin and something must grant it.
+
+The application still grants nothing in Production, so ADR-028's rule stands exactly as written. The
+grant moved to the App Service, which is where the deployed topology puts it, and it is declared in
+the template rather than clicked into a portal.
+
+It names one origin: the static site deployed alongside it, read from that resource rather than
+typed as a literal. A hostname repeated as text drifts the first time the site is recreated and its
+generated name changes, and the failure would be a client that silently cannot call its own API. A
+wildcard would be worse and invisible: every call the client makes would keep working, and so would
+everyone else's.
