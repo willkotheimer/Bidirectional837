@@ -378,3 +378,23 @@ published API, and had only ever been proven against the engines beneath it.
   The mangled names had been read by the conformance suite's own Theories since Section 2, which made
   that suite a record of the defect rather than a guard against it. Fixing it is what made FIND-021
   and FIND-022 visible at all.
+
+### Section 9 — The client: scaffold, helpers, data layer, Model → 837 (2026-08-30)
+
+- `src/Translator.UI` exists: Vite, React, TypeScript, Vitest, TanStack Query and Formik, governed by
+  the now-binding `docs/GOVERNANCE-FRONTEND.md`.
+- The helpers carry the testable logic, as Section 4a requires, and hold most of the suite: the CSV
+  writer, the governed-column formatting, the problem-document reader and the local store. Every one
+  is driven by `it.each` over a table of variants, which is `[Theory]` with `MemberData` in another
+  language.
+- The data layer is the only code that talks to the server, and its tests fake the network rather
+  than the module under test - a test that stubbed `fetchMedicalCodes` would prove the caller renders
+  what it was handed and nothing about whether it asked the right question.
+- The Model → 837 tab generates, tables and exports. The 837 → Model tab is an honest placeholder.
+- Verified running: both servers up, the catalogue reaching the client across origins, 980 codes
+  served, and the CORS grant confirmed to answer the Vite origin and refuse another.
+- Three things the register's own history shaped: the CSV writer quotes because FIND-019 was that
+  defect facing the other way, amounts render at the governed scale because FIND-022 was that
+  difference in representation, and the fixtures carry unmangled ASC X12 names because a fixture
+  written against `clM02_` would have hidden FIND-020 from the client as the backend suite hid it
+  from the server.
