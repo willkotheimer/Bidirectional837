@@ -15,3 +15,8 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# PROVENANCE: ADR-020 - the raw console output of each test run is written here and is not
+# versioned. docs/TDD-EVIDENCE.md carries its summary, and the git history carries the RED/GREEN
+# commit pair independently.
+docs/tdd-evidence/

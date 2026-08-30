@@ -36,6 +36,7 @@ define. The convention itself is ADR-008.
 | [ADR-017](#adr-017) | One 837 file per claim, named for its control number | Accepted | 4 | required |
 | [ADR-018](#adr-018) | X12 numerics are rendered without scale and read back at it | Accepted | 4 | required |
 | [ADR-019](#adr-019) | ICD-10 codes are stored dotted and emitted undotted | Accepted | 4 | required |
+| [ADR-020](#adr-020) | Run logs are summarised in the repository, not versioned | Accepted | 4a | required |
 
 ---
 
@@ -86,7 +87,7 @@ property name, type, nullability or length is a governance amendment and require
 
 Because the transcription is not designed, it is not test-driven; the naming theories in
 `SchemaContractTheories` exist to fail if it ever drifts, and consequently passed in the Section 1
-RED run. This is recorded in `docs/tdd-evidence/README.md` and in the Section 1 pull request. The
+RED run. This is recorded in `docs/TDD-EVIDENCE.md` and in the Section 1 pull request. The
 implementation that *was* test-driven is the persistence layer beneath it.
 
 ## ADR-004
@@ -150,7 +151,7 @@ The GitHub CLI is not installed on the build machine, so each section is committ
 `section-N/<topic>` branch, pushed to `origin`, and handed over as a compare link for the owner to
 open. Each section contributes at least two commits: a `test(section-N)` commit whose tree fails,
 and a `feat(section-N)` commit whose tree passes, so the Red-Green sequence required by governance
-Section 4 is legible in history as well as in `docs/tdd-evidence/`.
+Section 4 is legible in history as well as in `docs/TDD-EVIDENCE.md`.
 
 ## ADR-007
 
@@ -490,3 +491,38 @@ valid file.
 The writer therefore refuses a code that is not in canonical form rather than converting it. A loud
 failure on a malformed diagnosis is a better outcome than a quiet edit to one, and the refusal is
 what makes the round trip provable rather than merely likely.
+
+## ADR-020
+
+**The raw console output of each test run is summarised in the repository rather than versioned.**
+Requested by the project owner, 2026-08-30. Recorded by Claude Opus 5.
+
+*Governed clause affected:* Section 4 requires that tests be observed failing before implementation
+exists, and flags an implementation that passes on its first build "without a recorded failing test
+run in CI" as a violation. The clause requires the run to be recorded. It does not say in what form,
+and this decision changes the form.
+
+Five sections of raw `dotnet test` output had accumulated to some eleven thousand lines of console
+log, none of it read after the day it was produced, and it was growing faster than the code. The
+project owner asked for an executive summary instead.
+
+The evidence is not weakened, because it was never carried by those files alone. Three artefacts
+carry it now. `docs/TDD-EVIDENCE.md` records, per section, how many tests failed at RED, how many
+passed, and what the failing run proved. The git history carries the same fact independently and
+cannot be edited after the fact without rewriting it: every section is a `test(section-N)` commit
+whose tree fails, followed by a `feat(section-N)` commit whose tree passes, and either commit can be
+checked out and run. Each pull request quotes its own run.
+
+What is genuinely lost is the ability to re-read the console output of a run from months ago without
+checking out its commit and re-running it. That is a real cost and it is accepted deliberately: the
+output is reproducible from the tree that produced it, which is the property that made it evidence
+in the first place.
+
+Because a summary is hand-written where a log was mechanical, it is enforced.
+`TddEvidenceTheories` fails the build on a recorded RED run with no failures, on a GREEN run with
+any, on a suite that shrank between the two, and — the check that makes the others load-bearing —
+on any section that reaches this register or the findings register without recording a run at all.
+A section cannot escape the per-row checks by omitting its row.
+
+*Consequence:* see FIND-013. The summary cannot record the hash of the commit that writes it, so the
+GREEN commit is identified by convention rather than by hash.

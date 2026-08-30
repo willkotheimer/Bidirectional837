@@ -163,3 +163,27 @@ data is deterministic and synthetic, contains no PHI, and is generated in-proces
 - Data provenance: no new external data. No PHI: the corpus is synthetic and generated in process,
   and the trading partner identifiers in the envelope are constants of this build, disclosed in
   ADR-016.
+
+### Section 4a — Executive summary of the TDD evidence (2026-08-30)
+
+- At the project owner's request, the raw console output of each test run is no longer versioned.
+  `docs/tdd-evidence/` is ignored, its five sections of accumulated log removed from the tree, and
+  `docs/TDD-EVIDENCE.md` carries the summary: per section, the RED and GREEN counts, the commit
+  whose tree was observed failing, and what the failing run proved. Recorded as ADR-020.
+- The evidence was never carried by those files alone, and is not weakened. The git history holds
+  the same fact independently — a `test(section-N)` commit whose tree fails, then a
+  `feat(section-N)` commit whose tree passes — and either can be checked out and re-run. What is
+  lost is the convenience of re-reading an old run without re-running it, which is accepted.
+- Because a hand-written summary can drift where a log could not, it is enforced.
+  `TddEvidenceTheories` fails the build on a RED run recorded with no failures, a GREEN run with
+  any, a suite that shrank between the two, or a section that reaches either register without
+  recording a run at all. That last check is what stops a section from escaping the others by
+  omitting its row.
+- Recorded RED: 6 failed / 1135 passed. Recorded GREEN: 1163 passed / 0 failed. Both are in
+  `docs/TDD-EVIDENCE.md`, which is now where they live.
+- One finding: FIND-013, the self-reference. The RED run asserted that each row names both its RED
+  and its GREEN commit, and no commit can contain its own hash. The column is removed rather than
+  filled with something plausible.
+- Two pointers in `docs/DECISIONS.md` that named the deleted `docs/tdd-evidence/README.md` and
+  directory now name `docs/TDD-EVIDENCE.md`. The decisions themselves are unchanged; a register with
+  dead pointers is worse than one with corrected ones.

@@ -29,8 +29,7 @@ public class TddEvidenceTheories
         int RedPassed,
         int GreenPassed,
         int GreenFailed,
-        string RedCommit,
-        string GreenCommit);
+        string RedCommit);
 
     public static IEnumerable<object[]> RecordedSections() =>
         ReadSummary().Select(record => new object[] { record.Section });
@@ -75,15 +74,17 @@ public class TddEvidenceTheories
             "Tests were removed rather than made to pass.");
     }
 
+    /// <summary>
+    /// PROVENANCE: FIND-013 - the RED commit is recorded and the GREEN commit is not, because only
+    /// one of the two can be. A row is written into the commit that turns its own section green, so
+    /// that commit cannot carry its own hash. The RED commit is in any case the one governance
+    /// Section 4 asks for: it is the commit whose tree was observed failing.
+    /// </summary>
     [Theory]
     [MemberData(nameof(RecordedSections))]
-    public void Row_names_a_distinct_red_commit_and_green_commit(string section)
+    public void Row_names_the_commit_whose_tree_was_observed_failing(string section)
     {
-        var record = Find(section);
-
-        Assert.Matches(CommitId, record.RedCommit);
-        Assert.Matches(CommitId, record.GreenCommit);
-        Assert.NotEqual(record.RedCommit, record.GreenCommit);
+        Assert.Matches(CommitId, Find(section).RedCommit);
     }
 
     /// <summary>
@@ -139,8 +140,7 @@ public class TddEvidenceTheories
                 Count(cells[headings["RED passed"]]),
                 Count(cells[headings["GREEN passed"]]),
                 Count(cells[headings["GREEN failed"]]),
-                cells[headings["RED commit"]],
-                cells[headings["GREEN commit"]]));
+                cells[headings["RED commit"]]));
         }
 
         Assert.True(records.Count > 0, $"{SummaryPath} contains no parseable evidence rows.");
