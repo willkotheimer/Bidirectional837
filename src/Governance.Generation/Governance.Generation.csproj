@@ -15,6 +15,7 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\seed\hcpcs_categories.csv" LogicalName="Governance.Generation.Seed.hcpcs_categories.csv" />
     <EmbeddedResource Include="..\..\seed\charges_sample.csv" LogicalName="Governance.Generation.Seed.charges_sample.csv" />
+    <EmbeddedResource Include="..\..\seed\providers_by_state.csv" LogicalName="Governance.Generation.Seed.providers_by_state.csv" />
   </ItemGroup>
 
 </Project>
