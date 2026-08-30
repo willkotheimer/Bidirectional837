@@ -39,6 +39,7 @@ define. The convention itself is ADR-008.
 | [ADR-020](#adr-020) | Run logs are summarised in the repository, not versioned | Accepted | 4a | required |
 | [ADR-021](#adr-021) | The reader refuses what it cannot map exactly | Accepted | 5 | required |
 | [ADR-022](#adr-022) | An import applies whole or not at all | Accepted | 5 | required |
+| [ADR-023](#adr-023) | Provider data comes from a distilled NPPES snapshot | Accepted | 6 | required |
 
 ---
 
@@ -572,3 +573,48 @@ first time.
 The response to a successful import is read back out of the store rather than built from the parsed
 objects. The store is the layer FIND-001 and FIND-002 were found in, and a response assembled from
 what went in would report a mutation the store had introduced as though it had not happened.
+
+## ADR-023
+
+**Provider data comes from a distilled NPPES snapshot, with the live registry behind it.**
+Constraint set by the project owner; mechanism chosen by Claude Opus 5, 2026-08-30.
+
+*Governed clause affected:* governance User Story 1.1 says "query the open-source NPI registry API
+using the user-provided JurisdictionState". This departs from the mechanism while keeping what the
+mechanism was for.
+
+The bulk NPPES data dissemination file and the NPI registry API are the same data, published by the
+same authority. The API is a query interface over the file. So a provider read out of the file is
+not a substitute for a real provider; it *is* the real provider, and it satisfies the acceptance
+criterion — "System retrieves valid NPI, Provider Name, and Physical Address" — more reliably than
+the API path did, which FIND-017 shows had never satisfied it at all.
+
+The reason for the change is arithmetic. The registry answers one provider per request. A governed
+batch is 500 claims, so the live path was 500 round trips against the 3.0 second budget User Story
+1.3 sets. The project owner accepted a 1.1 GB download to remove them, and the trade is heavily in
+its favour: the download happens once, offline, and generation then makes no network calls at all.
+
+Three tiers, most real first: the snapshot, then the live registry for jurisdictions the snapshot
+does not carry, then the synthetic set that User Story 1.1 requires as a graceful fallback. The
+registry is still queried, still on by default, and now sends a query the registry will actually
+answer.
+
+*What is committed:* `scripts/distill_providers.py` streams the 11.6 GB member out of the archive
+without extracting it and writes `seed/providers_by_state.csv` — 3,120 real providers across 52
+jurisdictions, 225 KB. The archive itself stays in `seed/full/`, which `.gitignore` excludes, and
+the script re-derives the snapshot from any monthly file.
+
+Every filter in the script is driven by the governance Section 2 column it feeds. A provider whose
+name would not fit `Loop2010AA_NM103`, or whose address would not fit `N301`, is dropped rather than
+truncated: a truncated name is not that provider's name, and storing one would put a falsehood in
+the seed. Providers carrying an X12 delimiter are dropped for the same reason — the writer refuses
+them, so they could never be serialised.
+
+The check-digit rule is reimplemented in Python rather than shared with `Governance.Domain`, so the
+seed and the domain agree by independent arrival. If they ever disagree, the seed integrity Theories
+fail, which is the point of writing it twice.
+
+*Limitation, recorded honestly:* the snapshot is a point-in-time copy and will age. Providers close,
+move and are deactivated. It is regenerable in minutes from the current monthly file, the file it
+came from is named in `docs/PROVENANCE.md`, and nothing about the build depends on it being fresh —
+but it is a snapshot, not a live directory, and a demonstration corpus rather than a clinical one.

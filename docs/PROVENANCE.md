@@ -226,3 +226,31 @@ data is deterministic and synthetic, contains no PHI, and is generated in-proces
   name, so both need a register entry under the ADR-009 convention before they are added.
 - ADR-001 deferred the client until the contracts were frozen. They are: as of Section 5 every
   published operation has an engine behind it and none answers 501.
+
+### Section 6 — Provider data from a distilled NPPES snapshot (2026-08-30)
+
+- The project owner accepted a 1.1 GB download to remove per-claim provider lookups. Recorded as
+  ADR-023: the snapshot leads, the live registry sits behind it for jurisdictions it does not carry,
+  and the synthetic set stands behind both.
+- Two findings, and the first is the most serious of the build so far. FIND-017: the live NPI
+  registry query the application had sent since Section 3 is one the registry refuses, using HTTP
+  200 and an error body, so a deployed instance had never once retrieved a real provider and had
+  silently used the synthetic set for every claim. FIND-018: the latching fallback policy, correct
+  for the registry, would have disabled the new local snapshot after a single miss.
+- Both were invisible to a green suite. FIND-017 survived because every Theory over the registry
+  client answers a stub written to match our expectations rather than the service; the fix asserts
+  the *request* the client builds, which nothing had done. FIND-018 was found by reading the
+  fallback policy against a new kind of primary, and a test was written for it before the fix.
+- Recorded RED: 383 failed / 1413 passed. Recorded GREEN: see `docs/TDD-EVIDENCE.md`.
+
+Data sources added in this section:
+
+- **NPPES Data Dissemination, August 2026 V2** — `NPPES_Data_Dissemination_August_2026_V2.zip`,
+  1,151,460,412 bytes, from https://download.cms.gov/nppes/NPI_Files.html. Public domain, published
+  by CMS. Not committed; it lives in `seed/full/`, which `.gitignore` excludes.
+- **`seed/providers_by_state.csv`** — 3,120 real providers across 52 jurisdictions, distilled from
+  the above by `scripts/distill_providers.py`. No PHI: these are provider business records, which
+  CMS publishes precisely so they can be looked up, not patient data. Subscriber names in generated
+  claims remain synthetic.
+- The snapshot is point-in-time and will age. It is regenerable in minutes from any monthly file,
+  and nothing in the build depends on it being current.

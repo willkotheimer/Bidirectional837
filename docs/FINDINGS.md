@@ -30,6 +30,8 @@ marker cites a finding this register does not define. The convention is ADR-011.
 | [FIND-014](#find-014) | Governed decimal columns have no canonical scale in memory | Medium | Mitigated | 5 | required |
 | [FIND-015](#find-015) | Malformed-file suite passed for a reason unrelated to the damage | Medium | Fixed | 5 | required |
 | [FIND-016](#find-016) | Problem documents served under the wrong media type since Section 2 | Medium | Fixed | 5 | required |
+| [FIND-017](#find-017) | Live NPI registry query was never answerable; fallback was permanent | High | Fixed | 6 | required |
+| [FIND-018](#find-018) | Latching fallback would disable a local source after one miss | Medium | Fixed | 6 | required |
 
 A finding whose Guard reads `not applicable` is one no test yet holds shut. There are none at
 present: every recorded finding is named by a test that fails if it returns.
@@ -483,3 +485,76 @@ over a 404, a second 404 on a different route, and a validation 400.
 *Reportable as:* a contract violation that a schema review would not have found, because the schema
 was right — the published contract said `application/problem+json` all along. Only the application
 disagreed, and nothing compared the two.
+
+## FIND-017
+
+**The live NPI registry query was never one the registry would answer, so the fallback was
+permanent.**
+High. Fixed. Discovered 2026-08-30 by querying the live service directly rather than a stub.
+
+`NpiRegistryProviderDirectory` sent `?version=2.1&state={state}&enumeration_type=NPI-2&limit=20`.
+The registry refuses that combination — `state` requires a companion search criterion — and refuses
+it with **HTTP 200** and a body containing an `Errors` array rather than results:
+
+> Field state requires additional search criteria
+
+So `EnsureSuccessStatusCode` passed, no `results` property was found, the client threw "returned no
+providers", and `ResilientProviderDirectory` set the registry aside for the lifetime of the
+instance. Every subsequent claim in every subsequent batch used the synthetic set.
+
+*Why it matters:* governance User Story 1.1's acceptance criterion is "System retrieves valid NPI,
+Provider Name, and Physical Address" from the registry. A deployed instance has never done so. ADR-012
+argued the governed intent held because `Generation:UseLiveNpiRegistry` defaults to true; that
+reasoning was wrong, and the configuration flag was the only thing anyone checked.
+
+The defect survived because every Theory over this client answers a stub, and the stub returns what
+we expected the registry to return. That proves the client can read a well-formed answer. It says
+nothing about whether the registry would ever give one to the question we ask, and the question was
+the broken part. This is the FIND-016 pattern — a control proven only at the layer that declares it —
+applied to an outbound request rather than a response.
+
+*Resolution:* the query now carries the jurisdiction's ZIP prefix as its companion criterion, which
+narrows *within* the jurisdiction rather than across it. An `Errors` body is reported as a refusal
+naming the registry's own complaint, rather than as an empty result set, because both end in a
+fallback but only one tells an operator the query is wrong. ADR-023 additionally moves the primary
+source to a local snapshot, so the live path is no longer the only way to get a real provider.
+
+*Guard:* `RegistryQueryTheories`, which asserts the shape of the request the client builds — that it
+carries a companion criterion, that the criterion has a value, and that the state is still the
+requested one — and replays the live rejection body verbatim. Asserting the request rather than the
+response is the part that was missing.
+
+*Reportable as:* a governed acceptance criterion that was never met in production, behind a fully
+green test suite, for three sections. The test double was faithful to our expectations and not to
+the service.
+
+## FIND-018
+
+**A latching fallback would have disabled the local provider source after a single miss.**
+Medium. Fixed. Discovered 2026-08-30 while wiring the snapshot, before it shipped.
+
+`ResilientProviderDirectory` sets its primary aside permanently after one failure. ADR-012 gives the
+reason and it is a good one: a batch of 500 claims must not become 500 failed network calls each
+waiting out a timeout.
+
+Applied to the snapshot that reasoning inverts. The snapshot fails only for a jurisdiction it does
+not carry — a territory outside the 52, or a typo — and can still serve every other jurisdiction at
+no cost. Wrapping it in the latching policy would mean one request for an uncovered jurisdiction
+silently dropped the entire application to synthetic providers, for every state, until restart.
+
+*Why it matters:* the failure is invisible. Generation keeps succeeding, claims keep validating, the
+NPIs are still check-digit valid, and nothing distinguishes the output except that the providers are
+no longer real. It is the same class of silent degradation as FIND-017, which is what made it worth
+looking for.
+
+*Resolution:* `LayeredProviderDirectory` tries its sources in order on every request and sets none of
+them aside. The registry keeps `ResilientProviderDirectory`, because that is the remote dependency
+the latch was designed for. The distinction is the cost of a retry, and it is now stated in both
+types.
+
+*Guard:* `LayeredProviderDirectoryTheories`, which asserts that an unserviceable jurisdiction does
+not cost the others, that the primary is consulted on every one of 500 requests, and — as a
+contrast, so the two policies cannot quietly converge — that the resilient wrapper still latches.
+
+*Reportable as:* a defect found by reading the fallback policy against a new kind of primary rather
+than by a failing test. It would have shipped green.

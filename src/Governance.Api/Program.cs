@@ -15,13 +15,20 @@ builder.Services.AddOpenApi();
 // at the end of the request that created it, and the dashboard and export would find nothing.
 builder.Services.AddSingleton<EphemeralClaimStore>();
 
-// PROVENANCE: ADR-012 - governance User Story 1.1. The registry is tried first and the synthetic
-// set stands behind it, so an unreachable registry degrades a batch rather than failing it.
+// PROVENANCE: ADR-023 - governance User Story 1.1, in three tiers, most real first.
 //
-// The live registry is on by default, because User Story 1.1 asks for real provider data. It is
-// switched off by configuration in the test host, so that the suite is deterministic and needs no
-// network, and so a governed timing budget is never measured against someone else's service.
+// The distilled NPPES snapshot leads. It is the same data the registry API serves, from the same
+// authority, and it answers without a network call - which matters because the registry answers one
+// provider per request, so a governed batch of 500 was 500 round trips against the 3.0 second
+// budget User Story 1.3 sets.
+//
+// The live registry sits behind it for jurisdictions the snapshot does not carry, and remains on by
+// default because governance names it explicitly. The test host switches it off, so the suite is
+// deterministic and no governed timing budget is measured against someone else's service.
+//
+// The synthetic set stands behind both, which is the graceful fallback User Story 1.1 requires.
 builder.Services.AddSingleton<SyntheticProviderDirectory>();
+builder.Services.AddSingleton<SeedProviderDirectory>();
 
 if (builder.Configuration.GetValue("Generation:UseLiveNpiRegistry", defaultValue: true))
 {
@@ -30,14 +37,21 @@ if (builder.Configuration.GetValue("Generation:UseLiveNpiRegistry", defaultValue
         client.BaseAddress = new Uri(NpiRegistryProviderDirectory.DefaultBaseAddress);
         client.Timeout = TimeSpan.FromSeconds(5);
     });
-    builder.Services.AddSingleton<IProviderDirectory>(services => new ResilientProviderDirectory(
-        services.GetRequiredService<NpiRegistryProviderDirectory>(),
-        services.GetRequiredService<SyntheticProviderDirectory>()));
+
+    // PROVENANCE: FIND-018 - the snapshot is layered, not made resilient. A jurisdiction it does not
+    // carry must not set it aside for every jurisdiction it does. The registry keeps the latching
+    // wrapper, because that is the remote dependency ADR-012 reasoned about.
+    builder.Services.AddSingleton<IProviderDirectory>(services => new LayeredProviderDirectory(
+        services.GetRequiredService<SeedProviderDirectory>(),
+        new ResilientProviderDirectory(
+            services.GetRequiredService<NpiRegistryProviderDirectory>(),
+            services.GetRequiredService<SyntheticProviderDirectory>())));
 }
 else
 {
-    builder.Services.AddSingleton<IProviderDirectory>(
-        services => services.GetRequiredService<SyntheticProviderDirectory>());
+    builder.Services.AddSingleton<IProviderDirectory>(services => new LayeredProviderDirectory(
+        services.GetRequiredService<SeedProviderDirectory>(),
+        services.GetRequiredService<SyntheticProviderDirectory>()));
 }
 
 builder.Services.AddSingleton<IMedicalCodeCatalog, SeedMedicalCodeCatalog>();
