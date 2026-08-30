@@ -25,6 +25,7 @@ two, or if a section reaches `docs/DECISIONS.md` or `docs/FINDINGS.md` without r
 | 4 | Feature 2, the 837 export and archival engine | 383 | 741 | 1130 | 0 | `f9523f5` |
 | 4a | Executive summary of the TDD evidence | 6 | 1135 | 1163 | 0 | `4bf27e8` |
 | 5 | Feature 3, ingestion, parsing and the reversibility proof | 191 | 1185 | 1393 | 0 | `e7588ac` |
+| 6 | Provider data from a distilled NPPES snapshot | 383 | 1413 | 1815 | 0 | `00640a6` |
 
 The GREEN commit is not recorded, because it cannot be: a row is written by the commit that turns
 its own section green, so that commit cannot carry its own hash. FIND-013 records the discovery. It
@@ -76,6 +77,18 @@ The largest RED run so far. Two of the failures were again traceability, for ADR
 The run also settled the shape of the writer: the Theories requiring that the same claim serialise
 to the same bytes, and that storage identity never reach the stream, are what forbid reading the
 clock or a counter for any element the standard requires and governance does not store.
+
+### Section 6 — Provider data from a distilled NPPES snapshot
+
+The run that found FIND-017: the live NPI registry query the application had been sending since
+Section 3 was one the registry refuses, so the deployed system had never once retrieved a real
+provider. Every existing Theory over that client answered a stub written to return what we expected
+the registry to return, which proved the client could read a well-formed answer and nothing about
+whether the registry would ever give one. The new Theories measure the request we send and the exact
+rejection body the live service returns.
+
+FIND-018 was found while wiring the replacement rather than by a failing test, and a test was
+written for it before the fix.
 
 ### Section 5 — Feature 3, ingestion, parsing and the reversibility proof
 

@@ -53,8 +53,32 @@ public sealed class SyntheticProviderDirectory : IProviderDirectory
         ["NJ"] = 71, ["NM"] = 871, ["NY"] = 100, ["NC"] = 282, ["ND"] = 581, ["OH"] = 432,
         ["OK"] = 731, ["OR"] = 972, ["PA"] = 191, ["RI"] = 29, ["SC"] = 292, ["SD"] = 571,
         ["TN"] = 372, ["TX"] = 750, ["UT"] = 841, ["VT"] = 54, ["VA"] = 232, ["WA"] = 981,
-        ["WV"] = 251, ["WI"] = 532, ["WY"] = 820,
+        ["WV"] = 251, ["WI"] = 532, ["WY"] = 820, ["PR"] = 6,
     };
+
+    /// <summary>
+    /// PROVENANCE: FIND-017 - the leading three digits of a real ZIP for a jurisdiction, as text.
+    ///
+    /// Exposed because the registry query needs it too: it is the companion criterion that makes a
+    /// `state` query answerable, and it must narrow within the jurisdiction rather than across it.
+    /// The map holds these as integers, so a prefix below 100 - Connecticut's 060, Massachusetts'
+    /// 021 - has to be padded back to three digits or it would ask the registry for the wrong place.
+    /// </summary>
+    /// <exception cref="KeyNotFoundException">
+    /// The jurisdiction has no known prefix, so no answerable registry query can be built for it.
+    /// The caller's fallback chain handles that, which is where governance User Story 1.1 puts it.
+    /// </exception>
+    public static string ZipPrefixFor(string jurisdictionState)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(jurisdictionState);
+
+        var state = jurisdictionState.ToUpperInvariant();
+
+        return ZipPrefixByState.TryGetValue(state, out var prefix)
+            ? prefix.ToString("D3")
+            : throw new KeyNotFoundException(
+                $"No ZIP prefix is known for '{state}', so no registry query can be narrowed to it.");
+    }
 
     public Task<BillingProvider> ProviderForAsync(string jurisdictionState, int selector, CancellationToken cancellationToken = default)
     {
@@ -122,13 +146,36 @@ public sealed class NpiRegistryProviderDirectory : IProviderDirectory
         ArgumentException.ThrowIfNullOrWhiteSpace(jurisdictionState);
 
         var state = jurisdictionState.ToUpperInvariant();
-        var requestUri = $"api/?version=2.1&state={state}&enumeration_type=NPI-2&limit={PageSize}";
+
+        // PROVENANCE: FIND-017 - `state` is not a query the registry will answer on its own. It
+        // requires a companion criterion, and refuses a query without one using HTTP 200 and an
+        // error body, so the status code says nothing about it. The ZIP prefix is used as that
+        // companion because it narrows *within* the jurisdiction rather than across it: a criterion
+        // that replaced the state would return providers from anywhere.
+        var zipPrefix = SyntheticProviderDirectory.ZipPrefixFor(state);
+        var requestUri =
+            $"api/?version=2.1&state={state}&postal_code={zipPrefix}*&enumeration_type=NPI-2&limit={PageSize}";
 
         using var response = await HttpClient.GetAsync(requestUri, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         await using var body = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var document = await JsonDocument.ParseAsync(body, cancellationToken: cancellationToken);
+
+        // PROVENANCE: FIND-017 - a rejection arrives as HTTP 200 with an Errors array. Reading it as
+        // an empty result set produces the same fallback but reports the wrong reason, and the
+        // reason is the only thing that distinguishes a misconfigured query from an unlucky one.
+        if (document.RootElement.TryGetProperty("Errors", out var errors) &&
+            errors.ValueKind == JsonValueKind.Array &&
+            errors.GetArrayLength() > 0)
+        {
+            var complaints = errors.EnumerateArray()
+                .Select(error => Text(error, "description"))
+                .Where(description => description is not null);
+
+            throw new InvalidOperationException(
+                $"The NPI registry refused the query for {state}: {string.Join("; ", complaints)}");
+        }
 
         if (!document.RootElement.TryGetProperty("results", out var results) ||
             results.ValueKind != JsonValueKind.Array ||
@@ -214,5 +261,42 @@ public sealed class ResilientProviderDirectory : IProviderDirectory
         }
 
         return await Fallback.ProviderForAsync(jurisdictionState, selector, cancellationToken);
+    }
+}
+
+/// <summary>
+/// Tries each source in order on every request, without setting any of them aside.
+/// </summary>
+/// <remarks>
+/// PROVENANCE: FIND-018 - the counterpart to <see cref="ResilientProviderDirectory"/>, for a local
+/// primary rather than a remote one.
+///
+/// The distinction is the cost of a retry. A remote source that failed once will probably fail
+/// again and each attempt costs a timeout, so ADR-012 sets it aside for the lifetime of the
+/// instance. A local source fails only for a jurisdiction it does not carry, costs nothing to ask
+/// again, and can still serve every other jurisdiction - so setting it aside after one miss would
+/// silently drop the whole application to the mock set on the strength of a single unusual request.
+/// </remarks>
+public sealed class LayeredProviderDirectory : IProviderDirectory
+{
+    public LayeredProviderDirectory(IProviderDirectory primary, IProviderDirectory fallback)
+    {
+        Primary = primary;
+        Fallback = fallback;
+    }
+
+    public IProviderDirectory Primary { get; }
+    public IProviderDirectory Fallback { get; }
+
+    public async Task<BillingProvider> ProviderForAsync(string jurisdictionState, int selector, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await Primary.ProviderForAsync(jurisdictionState, selector, cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            return await Fallback.ProviderForAsync(jurisdictionState, selector, cancellationToken);
+        }
     }
 }
