@@ -20,3 +20,8 @@ venv/
 # versioned. docs/TDD-EVIDENCE.md carries its summary, and the git history carries the RED/GREEN
 # commit pair independently.
 docs/tdd-evidence/
+
+# Node / Vite client (src/Translator.UI)
+node_modules/
+dist/
+*.tsbuildinfo
