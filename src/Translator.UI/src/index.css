@@ -1,23 +1,49 @@
 @import "tailwindcss";
 
 /*
-  A utility application, styled as one. Neutral ground, one accent, no ornament: the data is the
-  interesting part of this page and the chrome should not compete with it.
+  A utility application, and still a medical one. The palette is deliberately narrow - a clinical
+  teal for structure, a signal red for the cardiac trace, and semantic colours that mean one thing
+  each - because on a page whose job is showing governed data, colour that decorates competes with
+  colour that informs.
 */
 @theme {
-  --color-ink: oklch(0.22 0.01 260);
-  --color-muted: oklch(0.52 0.01 260);
-  --color-line: oklch(0.90 0.005 260);
-  --color-surface: oklch(0.985 0.002 260);
-  --color-accent: oklch(0.52 0.13 245);
+  --color-ink: oklch(0.24 0.02 235);
+  --color-muted: oklch(0.52 0.02 235);
+  --color-line: oklch(0.90 0.01 235);
+  --color-surface: oklch(0.975 0.008 220);
+
+  /* Structure. */
+  --color-accent: oklch(0.52 0.11 218);
+  --color-accent-deep: oklch(0.36 0.09 225);
+  --color-accent-soft: oklch(0.95 0.03 218);
+
+  /* The trace. One thing is this colour, and it is the vital sign. */
+  --color-vital: oklch(0.58 0.19 20);
+
+  /* Verdicts. Each means exactly one thing, which is why they are named for meaning, not hue. */
+  --color-identical: oklch(0.52 0.13 155);
+  --color-identical-soft: oklch(0.95 0.04 155);
+  --color-differs: oklch(0.58 0.15 55);
+  --color-differs-soft: oklch(0.96 0.05 75);
+  --color-moved: oklch(0.55 0.19 25);
+  --color-moved-soft: oklch(0.96 0.04 25);
 }
 
 html, body, #root { height: 100%; }
 
 body {
   margin: 0;
-  background: white;
+  background:
+    radial-gradient(1200px 400px at 15% -10%, var(--color-accent-soft), transparent 70%),
+    white;
   color: var(--color-ink);
   font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Governed identifiers are read character by character, so they get a face built for that. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8125rem;
 }

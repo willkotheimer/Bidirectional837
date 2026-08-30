@@ -30,6 +30,7 @@ two, or if a section reaches `docs/DECISIONS.md` or `docs/FINDINGS.md` without r
 | 7a | Governance names the guardrails; the application is Translator | 119 | 1902 | 2026 | 0 | `f7dfb7e` |
 | 8 | Frontend governance, and the wire-naming defect it found | 37 | 2039 | 2085 | 0 | `f503b51` |
 | 9 | The client: scaffold, helpers, data layer, Model → 837 | 73 | 2124 | 2247 | 0 | `d623a07` |
+| 10 | The 837 → Model uploader, the reversibility verdict, and colour | 1 | 105 | 2286 | 0 | `e10b5ca` |
 
 The GREEN commit is not recorded, because it cannot be: a row is written by the commit that turns
 its own section green, so that commit cannot carry its own hash. FIND-013 records the discovery. It
@@ -81,6 +82,21 @@ The largest RED run so far. Two of the failures were again traceability, for ADR
 The run also settled the shape of the writer: the Theories requiring that the same claim serialise
 to the same bytes, and that storage identity never reach the stream, are what forbid reading the
 clock or a counter for any element the standard requires and governance does not store.
+
+### Section 10 — The 837 → Model uploader, the reversibility verdict, and colour
+
+The RED count is 1, and it is a suite rather than a test: `ImportTab.test.tsx` could not load, because
+the component it imports did not exist. Recorded as it happened rather than rounded up - a suite that
+cannot load is a genuine failing tree, which is what the protocol asks for, but it is not the same as
+a failing assertion and the table should not imply that it is.
+
+Two defects were found by reading compiled output rather than by any test. `bg-[--color-accent]`
+compiles to `background-color: --color-accent`, which is not valid CSS - Tailwind v4 wants the named
+utilities its `@theme` block generates - so every custom colour was silently doing nothing. And the
+palette that was supposed to replace it never landed at all: the heredoc that wrote it ran while the
+shell had reset to the repository root, creating a stray `src/index.css` two directories up while the
+real file kept its old five colours. Both surfaced from grepping the built CSS for a variable name
+and finding zero occurrences.
 
 ### Section 9 — The client: scaffold, helpers, data layer, Model → 837
 

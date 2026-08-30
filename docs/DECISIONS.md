@@ -46,6 +46,7 @@ define. The convention itself is ADR-008.
 | [ADR-027](#adr-027) | The frontend governance document is adopted and binding | Accepted | 8 | required |
 | [ADR-028](#adr-028) | Cross-origin access granted to the development client only | Accepted | 8 | required |
 | [ADR-029](#adr-029) | Governed timestamps are stored and returned as UTC | Accepted | 8 | required |
+| [ADR-030](#adr-030) | The header image is generated, and captioned as such | Accepted | 10 | required |
 
 ---
 
@@ -791,3 +792,30 @@ to guess.
 The 837 itself carries a date and a time to the minute and no zone at all, so nothing in the emitted
 file changes. What changes is that a claim which has been through the store and one which has not
 now serialise identically, which is what a client comparing them requires.
+
+## ADR-030
+
+**The header image is generated, and the page says so on the image itself.**
+Image chosen by the project owner, 2026-08-30. Caption and record by Claude Opus 5.
+
+The project owner asked for a photograph of a clinician taking a patient's blood pressure. Two
+objections were raised before it went in, and the owner's answer resolved both: the image is
+generated rather than licensed stock, so there is no licence to track, and it depicts no real
+person.
+
+One concern was not resolved by that and is handled here instead. The image is photorealistic, and
+it sits on a page whose whole discipline is not implying clinical reality — the example-data notice,
+ADR-024's framing of the charges, the care taken that no bill describes anything that happened. A
+convincing clinical photograph argues quietly against all of it.
+
+So the caption is on the image, not beside it: *"Illustration, generated. No real patient or
+clinician."* A photorealistic image needs that more than a drawing would, not less. It is decoration
+and nothing in it is data.
+
+The image carries an `alt` of `""`, which is deliberate rather than an omission. It conveys no
+information a screen-reader user needs; announcing it would be noise, and the caption is available
+to anyone who wants it.
+
+*Recorded for completeness:* the generated scene includes an incidental third-party logo on the
+blood-pressure cuff and an invented name badge. Neither is a claim about any real product or person,
+and both are artefacts of generation rather than choices.

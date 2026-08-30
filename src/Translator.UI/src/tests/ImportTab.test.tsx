@@ -59,7 +59,10 @@ describe('the uploader', () => {
   it('says it takes a single file or a ZIP of them', () => {
     renderTab();
 
-    expect(screen.getByText(/zip/i)).toBeInTheDocument();
+    // Both the label and the description mention it, which is the point: a user reading either
+    // learns the route takes a batch. The assertion is that it is said, not that it is said once.
+    expect(screen.getAllByText(/zip/i).length).toBeGreaterThan(0);
+    expect(screen.getByLabelText(/837 file/i)).toHaveAttribute('type', 'file');
   });
 
   it('uploads the chosen file to the published import route', async () => {
