@@ -13,9 +13,15 @@ namespace Governance.Api.Controllers;
 /// The route, request contract, and every response this operation can produce were published in
 /// docs/api/swagger.json before the generation engine existed. The engine now stands behind it.
 /// </summary>
+/// <remarks>
+/// PROVENANCE: FIND-016 - this controller does not carry a class-level [Produces]. That attribute
+/// is a result filter, not documentation: it forces its media type onto every response including
+/// the problem documents, which the published contract declares as application/problem+json. The
+/// response content types are documented by [ProducesResponseType] instead, which describes without
+/// overriding.
+/// </remarks>
 [ApiController]
 [Route("api/v1/bills")]
-[Produces("application/json")]
 public class BillsController : ControllerBase
 {
     private readonly SyntheticClaimGenerator _generator;

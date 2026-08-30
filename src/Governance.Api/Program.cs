@@ -50,6 +50,11 @@ builder.Services.AddSingleton<SyntheticClaimGenerator>();
 builder.Services.AddSingleton<Edi837Serializer>();
 builder.Services.AddSingleton<ClaimArchive>();
 
+// PROVENANCE: GOVERNANCE-5 - governance Feature 3. The reader holds no state between calls and
+// reads the delimiters out of each interchange it is given, so one instance serves every import.
+builder.Services.AddSingleton<Edi837Parser>();
+builder.Services.AddSingleton<ReversibilityVerifier>();
+
 var app = builder.Build();
 
 app.MapOpenApi();

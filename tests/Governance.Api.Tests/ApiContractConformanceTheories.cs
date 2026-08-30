@@ -97,6 +97,41 @@ public class ApiContractConformanceTheories : IClassFixture<GovernedApiFactory>
     }
 
     /// <summary>
+    /// PROVENANCE: FIND-016 - the published contract declares application/problem+json for every
+    /// error response, and nothing asserted that the application served it. A class-level
+    /// [Produces("application/json")] had been overriding it since the contract was published: the
+    /// status codes were right, the bodies were right, and the media type told a client the
+    /// document was something other than what it was.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(ErrorResponses))]
+    public async Task Error_response_is_served_as_the_problem_document_the_contract_declares(
+        string method, string path, int expectedStatus)
+    {
+        var client = _factory.CreateClient();
+
+        var response = method == "GET"
+            ? await client.GetAsync(path)
+            : await client.PostAsync(path, BodyFor(path));
+
+        Assert.Equal(expectedStatus, (int)response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    /// <summary>One error response for each way the published contract says a request can fail.</summary>
+    public static IEnumerable<object[]> ErrorResponses() =>
+    [
+        ["GET", $"/api/v1/claims/{Guid.NewGuid()}", 404],
+        ["POST", $"/api/v1/claims/{Guid.NewGuid()}/verify-reversibility", 404],
+        ["POST", "/api/v1/bills/batch-generate", 400],
+    ];
+
+    private static HttpContent? BodyFor(string path) =>
+        path.EndsWith("batch-generate", StringComparison.Ordinal)
+            ? JsonContent.Create(new { BillCount = 5000, JurisdictionState = "OH", MedicalCodeCategories = new[] { "Cardiac" } })
+            : null;
+
+    /// <summary>
     /// The one assertion here that is global rather than per-case: the served document must not
     /// grow a path the authored contract does not publish. Expressed as a Fact because it is a
     /// statement about the surface as a whole, not an invariant instantiated per input.

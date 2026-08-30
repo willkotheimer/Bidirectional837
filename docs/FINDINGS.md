@@ -27,6 +27,9 @@ marker cites a finding this register does not define. The convention is ADR-011.
 | [FIND-011](#find-011) | Undotted diagnosis code would round-trip into a different code | High | Mitigated | 4 | required |
 | [FIND-012](#find-012) | Delimiter guard rejected the segment that declares the delimiters | Low | Fixed | 4 | required |
 | [FIND-013](#find-013) | Evidence summary cannot record the commit that writes it | Low | Fixed | 4a | required |
+| [FIND-014](#find-014) | Governed decimal columns have no canonical scale in memory | Medium | Mitigated | 5 | required |
+| [FIND-015](#find-015) | Malformed-file suite passed for a reason unrelated to the damage | Medium | Fixed | 5 | required |
+| [FIND-016](#find-016) | Problem documents served under the wrong media type since Section 2 | Medium | Fixed | 5 | required |
 
 A finding whose Guard reads `not applicable` is one no test yet holds shut. There are none at
 present: every recorded finding is named by a test that fails if it returns.
@@ -381,3 +384,102 @@ requires the RED commit and no longer requires what cannot exist.
 *Reportable as:* a control that would have been satisfied by a plausible-looking placeholder. The
 Theory would have passed against any seven hex characters, so the defect was in what the assertion
 could be made true by, not in whether it passed.
+
+## FIND-014
+
+**A governed decimal column has no canonical scale until its value has passed through the store or
+the reader.**
+Medium. Mitigated. Discovered 2026-08-30 by the reversibility verifier reporting a mutation on
+every corpus claim.
+
+Governance Section 2 declares `decimal(18,2)` on the charge amounts and `decimal(18,4)` on the
+service unit count. Neither the entity nor C# enforces that: `decimal.Round(4m, 4)` is `4`, at scale
+zero, and an entity built in memory carries whatever scale the arithmetic that produced it left
+behind. The store normalises to the governed scale (ADR-004) and the EDI reader normalises to it
+(ADR-018), but an entity that has touched neither is at no particular scale.
+
+The verifier compared amounts as text, correctly, because 1.00m and 1m are equal as decimals and are
+not the same 837 — that is the whole of FIND-002. So it reported `4` becoming `4.0000` as a
+mutation on every claim in the corpus.
+
+*Why it matters:* the difference is real but it is a difference in representation, not in the
+governed amount, and reporting it as mutation is how a reversibility dashboard becomes noise that
+nobody reads. The opposite mistake is worse: comparing by value would have hidden a genuine scale
+loss, which is the defect FIND-002 recorded.
+
+*Resolution:* the verifier compares each amount as text at the scale its governed column declares,
+normalising both sides first. The Section 2 column declaration is what defines the canonical form,
+not the arithmetic that produced a particular value. Scale is still guarded at both boundaries it
+actually crosses: `PersistenceRoundTripTheories` over the store, and
+`Recovered_amounts_carry_the_scale_their_governed_columns_declare` over the reader.
+
+*Residual risk, and why this is Mitigated rather than Fixed:* nothing enforces the governed scale on
+an entity in memory. Every path that reaches the store or the wire normalises, so no stored or
+emitted value is affected, but two in-memory representations of the same governed amount remain
+possible. Enforcing scale on the entity would be a Section 2 change and is the project owner's to
+make.
+
+*Reportable as:* a defect found only because the comparison was strict. A verifier written to
+compare decimals by value would have passed on day one and would have been unable to detect the
+scale loss it existed to catch.
+
+## FIND-015
+
+**The malformed-file suite passed for a reason unrelated to the damage it applied.**
+Medium. Fixed. Discovered 2026-08-30 while implementing the reader, in two stages.
+
+Each Theory removed one required segment from a valid interchange and asserted the reader refused
+the result. Every case passed. None of them passed because of the segment removed: removing any
+segment also makes SE01 untrue, and the envelope check fires before any segment is looked for. The
+suite proved that the reader counts segments, twelve times over.
+
+Repairing SE01 after the removal exposed a second defect in the repair itself. The helper located
+the SE trailer by searching for the substring `SE*`, which occurs inside the receiver name
+`CLEARINGHOUSE*` earlier in the file. The "repair" was therefore rewriting the middle of the
+functional group header, and every case then failed on a mangled GS06 — again unrelated to the
+segment removed.
+
+*Why it matters:* this is the FIND-009 pattern, and it is the most dangerous kind of green. Twelve
+Theories reported that malformed files were refused; none of them had tested what they claimed. The
+reader's per-segment checks were entirely unexercised, and a reader that silently accepted a claim
+with no HI segment would have shipped with a full green suite behind it.
+
+*Resolution:* SE01 is recomputed after damage so the intended check fires, and segment identifiers
+are located at segment boundaries — the start of the interchange, or after a terminator — rather
+than as substrings. A separate Theory now asserts that each refusal names the segment at fault,
+which is what makes the per-segment checks observable at all.
+
+*Guard:* `MalformedInterchangeTheories.Interchange_missing_a_required_segment_is_refused` and the
+`StartOf` helper beneath it, both marked.
+
+*Reportable as:* a reminder that a passing test proves only that the assertion held, not that the
+scenario was the one described in the test's name.
+
+## FIND-016
+
+**Problem documents were served under the wrong media type, and had been since Section 2.**
+Medium. Fixed. Discovered 2026-08-30 by the first API-level test that asserted a response media
+type.
+
+`docs/api/swagger.json` declares `application/problem+json` for every 400 and 404 the contract
+publishes. The application served `application/json` for all of them. `[Produces("application/json")]`
+on the controller class is not documentation: it is a result filter, and it forces its media type
+onto every response the controller produces, including the problem documents that
+`ControllerBase.Problem()` would otherwise have typed correctly.
+
+*Why it matters:* the status codes were right and the bodies were right, so nothing looked wrong. A
+client that dispatches on `Content-Type` — which is what the media type is for, and what RFC 7807
+clients do — would not recognise these as problem documents. The API conformance suite had checked
+routes, paths and status codes since Section 2 and had never asserted a media type, so the defect
+survived three sections and two features.
+
+*Resolution:* the class-level `[Produces]` is removed from both controllers. Response content types
+are documented by `[ProducesResponseType]`, which describes without overriding. The action-level
+`[Produces("application/zip")]` on the export route stays: that one is correct and load-bearing.
+
+*Guard:* `ApiContractConformanceTheories.Error_response_is_served_as_the_problem_document_the_contract_declares`,
+over a 404, a second 404 on a different route, and a validation 400.
+
+*Reportable as:* a contract violation that a schema review would not have found, because the schema
+was right — the published contract said `application/problem+json` all along. Only the application
+disagreed, and nothing compared the two.
