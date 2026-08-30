@@ -52,6 +52,21 @@ public sealed class ClaimArchive
         return $"{safe}-{claim.Id:N}.837";
     }
 
+    /// <summary>
+    /// True if the payload is a ZIP archive rather than a bare 837 file.
+    /// </summary>
+    /// <remarks>
+    /// Read from the payload's own local file header signature, not from a filename or a declared
+    /// content type. Governance User Story 3.1 accepts "an 837 file or a .zip of 837 files" through
+    /// one route, and an uploaded file's name is whatever the client chose to call it.
+    /// </remarks>
+    public static bool LooksLikeZipArchive(ReadOnlySpan<byte> payload) =>
+        throw new NotImplementedException(nameof(LooksLikeZipArchive));
+
+    /// <summary>The 837 text of every entry in a ZIP archive, in the order the archive holds them.</summary>
+    public static IReadOnlyList<string> Unpack(byte[] package) =>
+        throw new NotImplementedException(nameof(Unpack));
+
     /// <summary>The ZIP archive holding one 837 file per claim, in the order given.</summary>
     public byte[] Package(IReadOnlyList<ClaimHeader> claims)
     {
