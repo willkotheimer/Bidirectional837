@@ -40,6 +40,8 @@ define. The convention itself is ADR-008.
 | [ADR-021](#adr-021) | The reader refuses what it cannot map exactly | Accepted | 5 | required |
 | [ADR-022](#adr-022) | An import applies whole or not at all | Accepted | 5 | required |
 | [ADR-023](#adr-023) | Provider data comes from a distilled NPPES snapshot | Accepted | 6 | required |
+| [ADR-024](#adr-024) | The code catalogue is built backwards from the fee schedules | Accepted | 7 | required |
+| [ADR-025](#adr-025) | Catalogue and jurisdiction routes serve the generation form | Accepted | 7 | required |
 
 ---
 
@@ -618,3 +620,72 @@ fail, which is the point of writing it twice.
 move and are deactivated. It is regenerable in minutes from the current monthly file, the file it
 came from is named in `docs/PROVENANCE.md`, and nothing about the build depends on it being fresh —
 but it is a snapshot, not a live directory, and a demonstration corpus rather than a clinical one.
+
+## ADR-024
+
+**The code catalogue is built backwards from the published fee schedules, not forwards from a list
+of codes.**
+Approach set by the project owner; mechanism chosen by Claude Opus 5, 2026-08-30.
+
+The project owner's instruction was to work backward from a fee schedule "instead of finding holes
+in codes we're assuming already exist". That inverts the usual order and is the better one: a code
+enters the catalogue only because a published CMS schedule prices it, so every catalogued code is
+real, current, billable and priced by construction. There is no gap to discover later, because a
+code with no price never enters.
+
+Three schedules are read, all public domain and all HCPCS Level II only: the DMEPOS fee schedule,
+which prices equipment, prosthetics, orthotics and supplies in dollars; the Physician Fee Schedule
+relative value file, which prices a service in RVUs; and the Part B payment limit file, which prices
+a drug in dollars per unit. Where they overlap the more specific governs — a drug is priced by the
+drug schedule.
+
+The HCPCS Level II file supplies descriptions. The fee schedules carry short descriptors abbreviated
+past readability — "Elec stim unattend for press", "Extrnl counterpulse" — which are no use to a
+selector and too compressed to categorise on.
+
+*This supersedes the fifteen hand-curated codes of ADR-013.* That decision's reasoning stands and is
+unchanged: CPT is excluded as proprietary to the AMA, the D series is excluded as proprietary to the
+ADA, and both exclusions are now checked by the build rather than remembered. The catalogue is 980
+codes across eight categories, with all three categories governance names as examples populated.
+
+*Categorisation is a heuristic, and is stated as one.* CMS publishes no clinical grouping for HCPCS
+Level II, so categories are keyword rules over the long description, listed in
+`scripts/distill_codes.py` where they can be read and argued with rather than buried in code. The
+rules match the head of the description, not the whole of it, because a code's category is what the
+code *is*: matching the whole filed "Office or other outpatient visit" under Anesthesia because a
+drug is named at the end of its text, and "skilled nursing services" under PhysicalTherapy because a
+rehabilitation facility is named at the end of its.
+
+*Limitation, and the honest frame for the whole corpus.* The project owner put it plainly: this is
+example data. The charges are real published figures of the right order of magnitude for the code,
+and that is exactly what makes the caveat necessary, because they look like prices. They are not
+what any particular provider bills, they do not vary by the jurisdiction the request selected, and
+they need not correspond to the provider the generator attached to the claim. The corpus exists to
+give the 837 translators something realistic to work on. The UI says so where a user can see it, and
+that requirement is recorded in `docs/UI-REQUIREMENTS.md`.
+
+## ADR-025
+
+**Two read-only routes serve the generation form its own vocabulary.**
+Claude Opus 5, 2026-08-30.
+
+*Governed clause affected:* none. Governance Section 5 names two routes; these are additions under
+the ADR-009 convention, which requires every unnamed route to be registered.
+
+`GET /api/v1/codes` serves the catalogue with each code's category and standard charge.
+`GET /api/v1/jurisdictions` serves the states the provider snapshot can actually source a provider
+for, with a name for the selector to show and a count.
+
+The alternative was a hard-coded list in the client, and the reason to reject it is drift. A client
+list disagrees with the server's seed corpus the first time either changes, and the disagreement
+surfaces as a batch-generate 400 for a category the dropdown itself offered — a failure reported far
+from its cause. Two Theories hold the routes to that standard directly: every category the codes
+route offers must be one batch generation accepts, and the charge a generated line bills must equal
+the charge the catalogue advertised.
+
+An unknown category is answered 404 rather than with an empty list, for the same reason: an empty
+list renders as a working-looking selector for something that cannot work.
+
+The jurisdiction names are a fixed list in `Governance.Generation.UnitedStates` rather than a package
+dependency. They change on a timescale of decades, there are fifty-two of them, and the dependency
+would be a larger surface than the data.

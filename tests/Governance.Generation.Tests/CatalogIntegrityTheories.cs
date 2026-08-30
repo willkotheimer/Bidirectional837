@@ -71,6 +71,30 @@ public class CatalogIntegrityTheories
         }
     }
 
+    /// <summary>
+    /// PROVENANCE: FIND-019 - descriptions must arrive whole, not truncated at their first comma.
+    ///
+    /// The seed reader split on every comma and documented the assumption that the files carried no
+    /// quoted fields. That was true of fifteen hand-written rows and false the moment the catalogue
+    /// was distilled from CMS prose. Asserting a description is non-empty did not catch it, because
+    /// a truncated description is not empty - so this asserts completeness instead.
+    /// </summary>
+    [Fact]
+    public void Descriptions_survive_the_seed_reader_whole()
+    {
+        var all = Catalog.Categories.SelectMany(Catalog.CodesIn).ToList();
+
+        foreach (var code in all)
+        {
+            Assert.False(code.Description.StartsWith('"'),
+                $"{code.Code} begins with a stray quote, so its row was split inside a quoted field.");
+            Assert.False(code.Description.EndsWith('"'), $"{code.Code} ends with a stray quote.");
+        }
+
+        // The guard is only meaningful if quoted fields are actually present to be mishandled.
+        Assert.Contains(all, code => code.Description.Contains(',', StringComparison.Ordinal));
+    }
+
     /// <summary>A code with no description is no use to the selector it feeds.</summary>
     [Theory]
     [MemberData(nameof(Categories))]
