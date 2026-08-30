@@ -83,6 +83,35 @@ attaches to it.
   `detail` and leaves the table as it was. Those messages name the segment at fault (ADR-021), so
   they are worth surfacing verbatim rather than replacing with "import failed".
 
+## Reversibility, in the 837 → Model table
+
+A column in the imported table, verified **on demand per row** rather than for the whole batch.
+
+Not a third tab: the verdict is two booleans, and a separate destination would split a claim from its
+own result. Not eagerly for every row either — there is no bulk verify endpoint, so a batch summary
+would mean one request per claim, which is the anti-pattern ADR-023 cost a section to remove.
+
+**Only on the import tab.** On the generate tab we produced the claims ourselves, so a verdict there
+restates what the suite already proves byte-for-byte over the whole corpus. On the import tab an
+outside file arrived and the question is live.
+
+**What the column may claim, and what it may not.** The endpoint verifies *stored record → 837 →
+stored record*. The server never keeps the uploaded bytes, so a file with different delimiters, CRLF
+line endings or a different envelope can preserve every governed field and still not be byte-identical
+to what we emit.
+
+| Reported | Means |
+|----------|-------|
+| `RecordIsIdentical` | No governed field moved |
+| `EdiTextIsIdentical` | Our re-export is byte-for-byte our export |
+
+So the column must not say "your file round-trips unchanged". The two are shown separately, per
+`docs/GOVERNANCE-FRONTEND.md` §9, and `Differences[]` names the governed column that moved.
+
+*Noted for later, not MVP:* the client is the only party still holding the uploaded bytes. The
+strongest possible check — governance Section 4's `Import(837) → DB → Export() == 837` against the
+user's own file — is one only the client can perform.
+
 ## Progress tracker — deferred
 
 Not built for now, at the project owner's direction.
