@@ -26,6 +26,7 @@ two, or if a section reaches `docs/DECISIONS.md` or `docs/FINDINGS.md` without r
 | 4a | Executive summary of the TDD evidence | 6 | 1135 | 1163 | 0 | `4bf27e8` |
 | 5 | Feature 3, ingestion, parsing and the reversibility proof | 191 | 1185 | 1393 | 0 | `e7588ac` |
 | 6 | Provider data from a distilled NPPES snapshot | 383 | 1413 | 1815 | 0 | `00640a6` |
+| 7 | Priced code catalogue and the routes that serve it | 16 | 1862 | 1889 | 0 | `fbb541b` |
 
 The GREEN commit is not recorded, because it cannot be: a row is written by the commit that turns
 its own section green, so that commit cannot carry its own hash. FIND-013 records the discovery. It
@@ -77,6 +78,18 @@ The largest RED run so far. Two of the failures were again traceability, for ADR
 The run also settled the shape of the writer: the Theories requiring that the same claim serialise
 to the same bytes, and that storage identity never reach the stream, are what forbid reading the
 clock or a counter for any element the standard requires and governance does not store.
+
+### Section 7 — Priced code catalogue and the routes that serve it
+
+Sixteen failures: eleven routes answering 501 and five dangling markers. The distillation itself was
+driven by inspection rather than by a failing test, and two defects in it were caught that way
+before anything shipped - a code priced at $0.00 because a tiny positive RVU rounds to nothing, and
+codes filed under the wrong category because a keyword matched an incidental mention late in a long
+description rather than the subject at its head.
+
+`CatalogIntegrityTheories` passes in this RED run and is disclosed as such. It guards distilled data
+rather than driving an implementation, in the same way the Section 1 naming theories guard a
+transcription.
 
 ### Section 6 — Provider data from a distilled NPPES snapshot
 

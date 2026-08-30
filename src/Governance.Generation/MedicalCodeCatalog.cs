@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Text;
 
 namespace Governance.Generation;
 
@@ -44,7 +45,13 @@ public sealed class SeedMedicalCodeCatalog : IMedicalCodeCatalog
     }
 }
 
-/// <summary>Reads an embedded seed CSV. Deliberately minimal: the seed files carry no quoted fields.</summary>
+/// <summary>Reads an embedded seed CSV, honouring quoted fields.</summary>
+/// <remarks>
+/// PROVENANCE: FIND-019 - this reader used to split on every comma, and documented the assumption
+/// that "the seed files carry no quoted fields". That was true of fifteen hand-written rows and
+/// stopped being true the moment the catalogue was distilled from CMS, whose descriptions are
+/// prose and contain commas. The assumption was recorded and still went stale silently.
+/// </remarks>
 internal static class SeedResource
 {
     public static IEnumerable<string[]> ReadRows(string logicalName)
@@ -61,7 +68,37 @@ internal static class SeedResource
             if (isHeader) { isHeader = false; continue; }
             if (line.Trim().Length == 0) continue;
 
-            yield return line.Split(',');
+            yield return SplitRow(line);
         }
+    }
+
+    /// <summary>
+    /// Splits one CSV record. A quoted field may contain the delimiter, and a doubled quote inside
+    /// one is a single literal quote.
+    /// </summary>
+    public static string[] SplitRow(string line)
+    {
+        var cells = new List<string>();
+        var current = new StringBuilder();
+        var quoted = false;
+
+        for (var index = 0; index < line.Length; index++)
+        {
+            var character = line[index];
+
+            if (quoted)
+            {
+                if (character != '"') { current.Append(character); continue; }
+
+                if (index + 1 < line.Length && line[index + 1] == '"') { current.Append('"'); index++; }
+                else quoted = false;
+            }
+            else if (character == '"') quoted = true;
+            else if (character == ',') { cells.Add(current.ToString()); current.Clear(); }
+            else current.Append(character);
+        }
+
+        cells.Add(current.ToString());
+        return [.. cells];
     }
 }

@@ -84,3 +84,28 @@ public record BatchGenerationRequestDto(
     [Required]
     List<string> MedicalCodeCategories
 );
+
+/// <summary>
+/// A catalogued medical code, its category and the standard charge the generator assigns it.
+/// </summary>
+/// <remarks>
+/// PROVENANCE: ADR-024 - the charge is example data. It is derived from a published CMS fee
+/// schedule, so it is the right order of magnitude and a real published figure for the code, but it
+/// is not what any particular provider in any particular state would bill. Nothing downstream
+/// should treat it as a price.
+/// </remarks>
+public record MedicalCodeDto(
+    string Code,
+    string Category,
+    string Description,
+    decimal StandardCharge
+);
+
+/// <summary>
+/// A jurisdiction the generator can source a billing provider for, and how many it holds.
+/// </summary>
+public record JurisdictionDto(
+    string Code,
+    string Name,
+    int ProviderCount
+);

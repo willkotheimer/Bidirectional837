@@ -254,3 +254,47 @@ Data sources added in this section:
   claims remain synthetic.
 - The snapshot is point-in-time and will age. It is regenerable in minutes from any monthly file,
   and nothing in the build depends on it being current.
+
+### Section 7 — Priced code catalogue and the routes that serve it (2026-08-30)
+
+- The catalogue is now built backwards from the published CMS fee schedules, at the project owner's
+  direction: a code enters only because a schedule prices it, so nothing has to be assumed to exist
+  (ADR-024). 980 codes across eight categories replace the fifteen hand-curated ones, with all three
+  categories governance names as examples populated.
+- `GET /api/v1/codes` and `GET /api/v1/jurisdictions` publish the catalogue and the states a provider
+  can be sourced for, so the generation form is built against the server's own vocabulary rather than
+  a copy that would drift (ADR-025).
+- The project owner framed the whole corpus explicitly: this is **example data**. The charges are
+  real published figures of the right order of magnitude, which is precisely why the caveat matters —
+  they look like prices, and they are not what any provider bills. The UI is required to say so where
+  a user can see it, recorded in `docs/UI-REQUIREMENTS.md`.
+- One finding, and two defects caught by inspection before they shipped. FIND-019: the seed reader
+  split on every comma and documented the assumption that seed files carried no quoted fields — true
+  of fifteen hand-written rows, false as soon as the catalogue held CMS prose. The charge path
+  survived only because price is the last column. Separately, and caught while reviewing the
+  distillation output rather than by a test: a code priced at $0.00 because a tiny positive RVU rounds
+  to nothing, and codes filed under the wrong category because a keyword matched an incidental
+  mention late in a long description rather than its subject.
+- FIND-010 re-measured. 500 bills over HTTP now run 0.99–1.08 s against the governed 3.0 s, against
+  1.6–2.4 s before Section 6. Kept Mitigated rather than closed, because the budget is still spent on
+  work governance does not name.
+
+Data sources added in this section, all public domain and all HCPCS Level II only:
+
+- **HCPCS Level II, October 2026** — `october-2026-alpha-numeric-hcpcs-file.zip`, from
+  https://www.cms.gov/medicare/coding-billing/healthcare-common-procedure-system/quarterly-update.
+  8,769 described codes; supplies the authoritative long descriptions.
+- **Physician Fee Schedule RVUs, 2026 Q4** — `rvu26d-updated-08-26-2026.zip`, from
+  https://www.cms.gov/medicare/payment/fee-schedules/physician/pfs-relative-value-files. 544 priced
+  Level II services. Charge = total RVU x the CY 2026 non-qualifying-APM conversion factor of
+  $33.40 (CMS-1832-F); the RVU member read is the nonQPP file, so that is the factor matching it.
+- **DMEPOS Fee Schedule, January 2026** — `dme26.zip`, from
+  https://www.cms.gov/medicare/payment/fee-schedules/dmepos/dmepos-fee-schedule/dme26. 1,265 priced
+  Level II items, at the published national ceiling.
+- **Medicare Part B payment limits (ASP), July 2026** — `july-2026-medicare-part-b-payment-limit-files.zip`,
+  from https://www.cms.gov/medicare/payment/part-b-drugs/asp-pricing-files. 855 priced Level II drugs.
+
+None of the four archives is committed; they live in `seed/full/`, which `.gitignore` excludes, and
+`scripts/distill_codes.py` re-derives `seed/hcpcs_categories.csv` and `seed/charges_sample.csv` from
+them. CPT is never read: Level I is five digits and AMA copyright, the D series is CDT and ADA
+copyright, and both exclusions are asserted by `CatalogIntegrityTheories` rather than remembered.

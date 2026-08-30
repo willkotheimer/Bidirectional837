@@ -70,7 +70,9 @@ public sealed class SeedProviderDirectory : IProviderDirectory
         {
             if (line.Length == 0) continue;
 
-            var cells = SplitCsv(line);
+            // PROVENANCE: FIND-019 - one quote-aware reader, in one place. Provider names
+            // legitimately contain commas: "ALABAMA CARDIOVASCULAR GROUP, P.C." is in the snapshot.
+            var cells = SeedResource.SplitRow(line);
             if (cells.Length < 8) continue;
 
             var state = cells[6].ToUpperInvariant();
@@ -98,35 +100,4 @@ public sealed class SeedProviderDirectory : IProviderDirectory
             StringComparer.OrdinalIgnoreCase);
     }
 
-    /// <summary>
-    /// Splits one CSV record. Provider names legitimately contain commas - "ALABAMA CARDIOVASCULAR
-    /// GROUP, P.C." is in the snapshot - so quoted fields have to be honoured rather than split on
-    /// every comma.
-    /// </summary>
-    private static string[] SplitCsv(string line)
-    {
-        var cells = new List<string>();
-        var current = new System.Text.StringBuilder();
-        var quoted = false;
-
-        for (var index = 0; index < line.Length; index++)
-        {
-            var character = line[index];
-
-            if (quoted)
-            {
-                if (character != '"') { current.Append(character); continue; }
-
-                // A doubled quote inside a quoted field is one literal quote.
-                if (index + 1 < line.Length && line[index + 1] == '"') { current.Append('"'); index++; }
-                else quoted = false;
-            }
-            else if (character == '"') quoted = true;
-            else if (character == ',') { cells.Add(current.ToString()); current.Clear(); }
-            else current.Append(character);
-        }
-
-        cells.Add(current.ToString());
-        return [.. cells];
-    }
 }

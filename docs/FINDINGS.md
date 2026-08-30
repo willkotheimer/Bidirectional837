@@ -32,6 +32,7 @@ marker cites a finding this register does not define. The convention is ADR-011.
 | [FIND-016](#find-016) | Problem documents served under the wrong media type since Section 2 | Medium | Fixed | 5 | required |
 | [FIND-017](#find-017) | Live NPI registry query was never answerable; fallback was permanent | High | Fixed | 6 | required |
 | [FIND-018](#find-018) | Latching fallback would disable a local source after one miss | Medium | Fixed | 6 | required |
+| [FIND-019](#find-019) | Seed reader documented an assumption the data outgrew | Medium | Fixed | 7 | required |
 
 A finding whose Guard reads `not applicable` is one no test yet holds shut. There are none at
 present: every recorded finding is named by a test that fails if it returns.
@@ -267,7 +268,8 @@ claims, and status-code behaviour is asserted separately by the tests that care 
 ## FIND-010
 
 **The governed 3.0 second budget is met, but almost none of it is spent generating.**
-Low. Mitigated. Measured 2026-08-29 while implementing User Story 1.3.
+Low. Mitigated. Measured 2026-08-29 while implementing User Story 1.3; re-measured 2026-08-30 after
+Section 6, which changed the arithmetic materially. See the addendum at the end of this entry.
 
 Governance User Story 1.3 requires that "generation of 500 bills finishes in under 3.0 seconds".
 Measured on the build machine, with the batch of 500 claims carrying 1,443 service lines:
@@ -558,3 +560,59 @@ contrast, so the two policies cannot quietly converge — that the resilient wra
 
 *Reportable as:* a defect found by reading the fallback policy against a new kind of primary rather
 than by a failing test. It would have shipped green.
+
+## FIND-019
+
+**A seed reader documented an assumption that the data later outgrew.**
+Medium. Fixed. Discovered 2026-08-30 by reading the API response, not by a failing test.
+
+`SeedResource.ReadRows` split every seed CSV on every comma, and said so in its own summary:
+"Deliberately minimal: the seed files carry no quoted fields." That was true of the fifteen
+hand-written codes ADR-013 curated. It stopped being true the moment ADR-024 distilled the catalogue
+from CMS, whose descriptions are prose and are full of commas.
+
+The consequence was visible in the served catalogue, once anyone looked:
+
+> `"Moderate sedation services provided by the same physician or other qualified health care
+> professional performing a gastrointestinal endoscopic service that sedation supports`
+
+— a stray leading quote and everything after the first comma gone.
+
+*Why it matters, and why it is Medium rather than Low.* A description reaches no 837 element, so no
+claim was corrupted. But two things about how it survived are worth more than the defect:
+
+The charge path escaped **by accident**. `SeedChargeSchedule` reads its price from `cells[^1]`, the
+last cell, and price is the last column — so naive splitting still landed on it. Had the columns been
+ordered any other way, every catalogued code would have silently fallen through to the deterministic
+fallback charge, which is positive and plausible and would have passed every assertion in the suite.
+
+And the guard that should have caught it asserted the wrong property. `Every_catalogued_code_carries_a_description`
+asserted the description was not empty. A truncated description is not empty.
+
+*Resolution:* the reader honours quoted fields, and `SeedProviderDirectory` — which had grown its own
+private copy of the same splitter, because provider names contain commas too — now uses the one
+implementation rather than a second one that happened to be correct.
+
+*Guard:* `CatalogIntegrityTheories.Descriptions_survive_the_seed_reader_whole`, which asserts
+completeness rather than presence, and asserts that the corpus actually contains a quoted field so
+the guard cannot pass vacuously.
+
+*Reportable as:* a stale assumption that was written down. The comment was accurate when authored and
+became false without anyone editing it, which is the failure mode documentation cannot protect
+against and a test can.
+
+## FIND-010 — addendum, 2026-08-30
+
+Re-measured after Section 6 replaced per-claim registry lookups with a local snapshot (ADR-023), and
+after Section 7 grew the catalogue from 15 codes to 980.
+
+| Stage | 2026-08-29 | 2026-08-30 |
+|-------|-----------|-----------|
+| Full request: 500 bills, over HTTP | 1.6 - 2.4 s | **0.99 - 1.08 s** |
+| First request of a process | 7.4 s | 3.9 s |
+
+The margin against the governed 3.0 second budget is now roughly threefold rather than the third it
+was. The finding stays **Mitigated** rather than closed, because its substance was never the number:
+the budget is still spent almost entirely on persistence and serialisation, which governance does not
+name, so a slower machine could still breach the end-to-end assertion while the governed requirement
+stays comfortably met. What has changed is that the headroom is no longer thin.
