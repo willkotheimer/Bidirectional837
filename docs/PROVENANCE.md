@@ -398,3 +398,51 @@ published API, and had only ever been proven against the engines beneath it.
   difference in representation, and the fixtures carry unmangled ASC X12 names because a fixture
   written against `clM02_` would have hidden FIND-020 from the client as the backend suite hid it
   from the server.
+
+### Header image (2026-08-30)
+
+- `src/Translator.UI/public/clinic.webp` — a clinician taking a patient's blood pressure. Generated
+  with Google Gemini by the project owner, supplied as a 1408x768 JFIF and converted here to WebP
+  (818 KB to 110 KB, quality 82).
+- It depicts no real person and no real clinical encounter. It is not licensed stock, so there is no
+  licence to carry, which is why this route was preferred to a photograph of real people.
+- It is captioned on its own face as generated (ADR-030), because the page spends a paragraph
+  explaining that its data describes nothing that happened and a photorealistic image works against
+  that unless it says what it is.
+- Three near-identical variants were supplied; the one showing the room's privacy notice was the
+  one the project owner asked for.
+
+### Section 10 — The 837 → Model uploader, the reversibility verdict, and colour (2026-08-30)
+
+- The import direction is built. A single 837 or a ZIP of them is uploaded as multipart, the
+  reconstructed bills are tabled, and a refusal shows the server's own words while leaving the
+  existing table untouched, as ADR-022 requires.
+- Each row carries a **Verify** button rather than a batch summary. There is no bulk verify endpoint,
+  so verifying a table would be one request per claim - the anti-pattern ADR-023 cost a section to
+  remove - and a Theory asserts no verification request is made until one is asked for.
+- The verdict is two pills, never one. The endpoint compares a stored record against its own
+  re-export and never sees the bytes the user uploaded, so a claim can be perfectly preserved while
+  the text differs. Colour reinforces the words and never replaces them.
+- Styling is Tailwind, and only Tailwind. shadcn is a CLI that copies Tailwind-written source into a
+  project rather than a component library, so choosing it chooses Tailwind; Bootstrap alongside would
+  mean two resets fighting and colliding class names. `components/ui.tsx` follows the shadcn
+  convention - component source living in the repository - at about a hundred lines, without the
+  Radix dependency a generated set would bring. Native `select` elements are kept deliberately: Radix
+  cannot do the multi-select the category picker needs.
+- Two styling defects were found by reading the compiled CSS rather than the source, which is the
+  only reason either surfaced. Both are recorded in `docs/TDD-EVIDENCE.md`.
+
+Image added in this section:
+
+- **`src/Translator.UI/public/clinic.webp`** — a close-up of a clinician measuring a patient's blood
+  pressure with a manual sphygmomanometer. Supplied by the project owner as `licensed-image.jfif`,
+  2048x1366, converted here to WebP at 1600px wide (174 KB to 53 KB, quality 82).
+- Nobody in it is identifiable - the frame shows hands and an instrument - and no product branding is
+  legible. It is captioned on its own face as a stock photograph illustrating nothing on the page
+  (ADR-030).
+- **Licence: not recorded, and owed.** The filename says it is licensed and the project owner
+  supplied it as such, but the terms, the library and the licence identifier are not derivable from
+  the file and are not written down here. Every other byte of data in this repository names its
+  source; this one does not yet. It should be completed before anything is published.
+- An earlier generated image was used first and replaced. Its caption said "Illustration, generated"
+  and would have been false of this one, so it was rewritten rather than carried over.

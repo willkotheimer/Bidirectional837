@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useFormik } from 'formik';
 import { ClaimTable } from './ClaimTable';
-import { useGenerateBatch, useJurisdictions, useMedicalCodes } from '../data/queries';
+import { Alert, Button, Field, Panel } from './ui';
+import { useClaimArchive, useGenerateBatch, useJurisdictions, useMedicalCodes } from '../data/queries';
 import { writeClaims } from '../helpers/claimStore';
 import { claimsToCsv } from '../helpers/csv';
+import { downloadBlob } from '../helpers/download';
 import type { ClaimHeader } from '../helpers/claimFields';
 
 /**
@@ -20,21 +22,11 @@ import type { ClaimHeader } from '../helpers/claimFields';
 const GOVERNED_CEILING = 500;
 const BILL_COUNTS = [1, 5, 10, 25, 50, 100, 250, GOVERNED_CEILING] as const;
 
-function download(blob: Blob, fileName: string) {
-  const href = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-
-  link.href = href;
-  link.download = fileName;
-  link.click();
-
-  URL.revokeObjectURL(href);
-}
-
 export function GenerateTab() {
   const codes = useMedicalCodes();
   const jurisdictions = useJurisdictions();
   const generate = useGenerateBatch();
+  const archive = useClaimArchive();
   const [claims, setClaims] = useState<ClaimHeader[]>([]);
 
   // Section 4a: derived during render. The catalogue arrives flat and the selector wants its
@@ -60,91 +52,98 @@ export function GenerateTab() {
     },
   });
 
-  const exportCsv = () => {
-    download(new Blob([claimsToCsv(claims)], { type: 'text/csv' }), 'claims.csv');
-  };
+  const exportCsv = () =>
+    downloadBlob(new Blob([claimsToCsv(claims)], { type: 'text/csv' }), 'generated-claims.csv');
 
   /**
    * PROVENANCE: ADR-027 - Section 9: the client never produces an 837. The governed output comes
-   * from the server, which is the only thing that has a serializer held to the Section 1
+   * from the server, which is the only thing holding a serializer answerable to the Section 1
    * Reversibility Guarantee.
    */
   const export837 = async () => {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000'}/api/v1/claims/export-zip`);
-    const disposition = response.headers.get('Content-Disposition');
-    const name = /filename="?([^";]+)"?/.exec(disposition ?? '')?.[1] ?? 'claims-837.zip';
+    const { blob, fileName } = await archive.mutateAsync();
 
-    download(await response.blob(), name);
+    downloadBlob(blob, fileName);
   };
 
   return (
-    <section>
-      <form onSubmit={form.handleSubmit}>
-        <p>
-          <label htmlFor="BillCount">Number of bills</label>
-          <select id="BillCount" name="BillCount" value={form.values.BillCount} onChange={form.handleChange}>
-            {BILL_COUNTS.map((count) => (
-              <option key={count} value={count}>
-                {count}
-              </option>
-            ))}
-          </select>
-        </p>
+    <Panel
+      title="Model → 837"
+      description="Generate synthetic bills against the governed schema, then export them as CSV or as
+        an ASC X12 837 archive. Every option below comes from the server, so nothing offered here can
+        be refused by it."
+    >
+      <form onSubmit={form.handleSubmit} className="flex flex-wrap items-end gap-4">
+        <Field
+          id="BillCount"
+          name="BillCount"
+          label="Number of bills"
+          hint="Governance caps a batch at 500."
+          value={form.values.BillCount}
+          onChange={form.handleChange}
+        >
+          {BILL_COUNTS.map((count) => (
+            <option key={count} value={count}>
+              {count}
+            </option>
+          ))}
+        </Field>
 
-        <p>
-          <label htmlFor="JurisdictionState">State</label>
-          <select
-            id="JurisdictionState"
-            name="JurisdictionState"
-            value={form.values.JurisdictionState}
-            onChange={form.handleChange}
-          >
-            <option value="">Any</option>
-            {(jurisdictions.data ?? []).map((jurisdiction) => (
-              <option key={jurisdiction.Code} value={jurisdiction.Code}>
-                {jurisdiction.Name}
-              </option>
-            ))}
-          </select>
-        </p>
+        <Field
+          id="JurisdictionState"
+          name="JurisdictionState"
+          label="State"
+          hint="Selects the billing provider."
+          value={form.values.JurisdictionState}
+          onChange={form.handleChange}
+        >
+          <option value="">Any</option>
+          {(jurisdictions.data ?? []).map((jurisdiction) => (
+            <option key={jurisdiction.Code} value={jurisdiction.Code}>
+              {jurisdiction.Name}
+            </option>
+          ))}
+        </Field>
 
-        <p>
-          <label htmlFor="MedicalCodeCategories">Medical code categories</label>
-          <select
-            id="MedicalCodeCategories"
-            name="MedicalCodeCategories"
-            multiple
-            value={form.values.MedicalCodeCategories}
-            onChange={form.handleChange}
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </p>
+        <Field
+          id="MedicalCodeCategories"
+          name="MedicalCodeCategories"
+          label="Medical code categories"
+          hint="None selected means all of them."
+          multiple
+          size={4}
+          className="min-w-56"
+          value={form.values.MedicalCodeCategories}
+          onChange={form.handleChange}
+        >
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </Field>
 
-        <button type="submit" disabled={generate.isPending}>
+        <Button type="submit" variant="primary" disabled={generate.isPending}>
           {generate.isPending ? 'Generating…' : 'Generate bills'}
-        </button>
+        </Button>
       </form>
 
-      {generate.isError && <p role="alert">{(generate.error as Error).message}</p>}
+      {generate.isError && <Alert>{(generate.error as Error).message}</Alert>}
 
       {claims.length > 0 && (
-        <>
-          <p>
-            <button type="button" onClick={exportCsv}>
+        <div className="mt-5 space-y-4">
+          <div className="flex gap-2">
+            <Button type="button" onClick={exportCsv}>
               Export CSV
-            </button>
-            <button type="button" onClick={export837}>
-              Export 837
-            </button>
-          </p>
+            </Button>
+            <Button type="button" onClick={() => void export837()} disabled={archive.isPending}>
+              {archive.isPending ? 'Building the archive…' : 'Export 837'}
+            </Button>
+          </div>
+
           <ClaimTable claims={claims} caption={`${claims.length} generated bills`} />
-        </>
+        </div>
       )}
-    </section>
+    </Panel>
   );
 }

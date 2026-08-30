@@ -46,6 +46,7 @@ define. The convention itself is ADR-008.
 | [ADR-027](#adr-027) | The frontend governance document is adopted and binding | Accepted | 8 | required |
 | [ADR-028](#adr-028) | Cross-origin access granted to the development client only | Accepted | 8 | required |
 | [ADR-029](#adr-029) | Governed timestamps are stored and returned as UTC | Accepted | 8 | required |
+| [ADR-030](#adr-030) | The header image says what it is, whatever it is | Accepted | 10 | required |
 
 ---
 
@@ -791,3 +792,36 @@ to guess.
 The 837 itself carries a date and a time to the minute and no zone at all, so nothing in the emitted
 file changes. What changes is that a claim which has been through the store and one which has not
 now serialise identically, which is what a client comparing them requires.
+
+## ADR-030
+
+**The header image says what it is, and what it is not.**
+Image chosen by the project owner, 2026-08-30. Caption and record by Claude Opus 5.
+
+The project owner asked for a photograph of a clinician taking a patient's blood pressure. Two
+concerns were raised before one went in: a stock photograph carries a licence this project would
+have to track, and a photorealistic clinical scene argues quietly against the page's own discipline
+of not implying clinical reality.
+
+*The image changed once during the section, and the caption changed with it.* A generated image went
+in first, captioned "Illustration, generated. No real patient or clinician." The project owner then
+supplied a licensed photograph instead. That caption would have been false of the new image, so it
+was replaced rather than left: a page that spends a paragraph explaining its data describes nothing
+that happened cannot carry a caption that is itself untrue.
+
+The caption now reads *"Stock photograph. Illustrative only — unrelated to any bill shown here."*
+It makes the one claim that matters and no more: nothing in the image is data, and no bill below
+relates to it.
+
+The photograph shows hands and a sphygmomanometer. Nobody in it is identifiable, and no product
+branding is legible, which is why the earlier concern about a convincing clinical scene weighs less
+here than it did against a face-forward image.
+
+The `alt` is `""`, which is deliberate rather than an omission. The image conveys nothing a
+screen-reader user needs; announcing it would be noise, and the caption is there for anyone who
+wants it.
+
+*Outstanding:* the licence terms are not recorded, because they are not derivable from the file. See
+`docs/PROVENANCE.md` — the entry names what is known and marks the source as owed by the project
+owner. A licensed asset with no recorded licence is exactly the gap this project's provenance
+discipline exists to close.
