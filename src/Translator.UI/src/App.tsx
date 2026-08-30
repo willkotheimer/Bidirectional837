@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GenerateTab } from './components/GenerateTab';
 import { clearAllClaims } from './helpers/claimStore';
-import './App.css';
 
 /**
  * PROVENANCE: ADR-027 - frontend governance Section 5: the store is cleared at startup, before

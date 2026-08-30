@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
@@ -5,7 +6,7 @@ import { defineConfig } from 'vitest/config'
 // Pinned rather than left to pick a free port, because a port the API does not name is a port the
 // browser refuses.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   server: { port: 5173, strictPort: true },
   test: {
     // The default forks pool times out waiting for workers on this Windows machine; threads is the
