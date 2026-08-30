@@ -129,3 +129,37 @@ data is deterministic and synthetic, contains no PHI, and is generated in-proces
 - The live NPI registry is queried by the deployed application and switched off in the test host, so
   the suite is deterministic and no governed timing budget is measured against a third-party
   service (ADR-012).
+
+### Section 4 — Feature 2, the 837 export and archival engine (2026-08-30)
+
+- Implemented governance Feature 2: EDI 837 serialisation (User Story 2.1) and ZIP packaging
+  (User Story 2.2). `GET /api/v1/claims/export-zip`, published in Section 2, now has an engine
+  behind it and no longer answers 501.
+- Recorded RED: 383 failed / 741 passed (`docs/tdd-evidence/section-4-red.txt`). Recorded GREEN:
+  1130 passed / 0 failed (`docs/tdd-evidence/section-4-green.txt`).
+- The six segments User Story 2.1 names — ISA, GS, ST, BHT, CLM, SE — each have their own Theory
+  asserted over the whole claim corpus. The 5010 syntax rules are asserted as structure rather than
+  as spot checks: envelopes nest and agree at both ends, GE01 and IEA01 state true counts, SE01
+  counts the segments it closes, segments arrive in guide order, and no element outside the ISA
+  header carries a delimiter.
+- Two invariants exist solely to protect the Section 1 Reversibility Guarantee, and they constrain
+  the writer more than the standard does. Serialising the same claim twice must yield the same
+  bytes, which forbids reading the clock or a counter for any element; and the database identity of
+  a claim must not reach the stream, because an importer cannot recover a Guid. Both are recorded as
+  ADR-016.
+- The tests measure the writer with a reader written independently of the ingestion parser, which is
+  a Feature 3 deliverable. A writer measured by a reader built to match it agrees with itself about
+  any shared misreading of the standard and proves nothing about reversibility.
+- Two findings recorded. FIND-011: a diagnosis code stored without its decimal point would
+  round-trip into a different code, mitigated by refusing it rather than converting it, with the
+  residual risk stated. FIND-012: the delimiter guard rejected ISA, the one segment whose purpose is
+  to declare the delimiters — a test defect, recorded rather than quietly fixed, because the
+  tempting repair was to make the writer wrong.
+- The claim corpus moved to `tests/Governance.TestSupport` so the EDI, persistence and API suites
+  measure against the same deterministic claims rather than against corpora that could drift apart.
+- Verified outside the suite as well as inside it: the running application was driven end to end,
+  a batch generated over HTTP and the archive downloaded and unpacked, and the emitted interchange
+  read by eye against the guide.
+- Data provenance: no new external data. No PHI: the corpus is synthetic and generated in process,
+  and the trading partner identifiers in the envelope are constants of this build, disclosed in
+  ADR-016.

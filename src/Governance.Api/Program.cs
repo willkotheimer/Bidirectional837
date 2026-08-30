@@ -1,4 +1,5 @@
 using Governance.Domain.Persistence;
+using Governance.Edi;
 using Governance.Generation;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +43,12 @@ else
 builder.Services.AddSingleton<IMedicalCodeCatalog, SeedMedicalCodeCatalog>();
 builder.Services.AddSingleton<IChargeSchedule, SeedChargeSchedule>();
 builder.Services.AddSingleton<SyntheticClaimGenerator>();
+
+// PROVENANCE: GOVERNANCE-5 - governance Feature 2. The serializer holds no per-request state
+// and reads nothing outside the claim it is given (ADR-016), so one instance serves every
+// export.
+builder.Services.AddSingleton<Edi837Serializer>();
+builder.Services.AddSingleton<ClaimArchive>();
 
 var app = builder.Build();
 

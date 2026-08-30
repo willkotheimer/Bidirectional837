@@ -252,16 +252,26 @@ public class X12SyntaxTheories
     /// address splits one element into two and shifts every element after it, which is the
     /// classic way an EDI file becomes silently wrong rather than loudly invalid.
     /// </summary>
+    /// <remarks>
+    /// PROVENANCE: FIND-012 - ISA is exempt, and the exemption is not a concession. ISA is the
+    /// segment that *declares* the delimiters: ISA11 is the repetition separator and ISA16 the
+    /// component separator, each carried as its own literal value. A guard that scanned it would
+    /// be asserting that the interchange must not say what its delimiters are.
+    /// </remarks>
     [Theory]
     [MemberData(nameof(Claims))]
-    public void No_emitted_element_carries_a_delimiter_character(int index, int lineCount)
+    public void No_emitted_element_outside_the_ISA_header_carries_a_delimiter_character(
+        int index, int lineCount)
     {
         var delimiters = X12Delimiters.Default;
+        var segments = X12TestReader.Read(Serialize(index, lineCount)).Where(s => s.Id != "ISA").ToList();
 
-        foreach (var segment in X12TestReader.Read(Serialize(index, lineCount)))
+        Assert.NotEmpty(segments);
+
+        foreach (var segment in segments)
         {
-            // The composite separator is legitimate punctuation inside a composite element, and
-            // ISA16 declares it, so it is checked at component level rather than element level.
+            // The component separator is legitimate punctuation *between* the components of a
+            // composite element, so the check is made per component rather than per element.
             foreach (var component in segment.Elements.SelectMany(element => element.Split(':')))
             {
                 Assert.False(delimiters.CollidesWith(component),

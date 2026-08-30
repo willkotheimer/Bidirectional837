@@ -32,6 +32,10 @@ define. The convention itself is ADR-008.
 | [ADR-013](#adr-013) | Curated public HCPCS Level II catalog, no CPT | Accepted | 3 | required |
 | [ADR-014](#adr-014) | Generation is seeded and reproducible | Accepted | 3 | required |
 | [ADR-015](#adr-015) | The ephemeral store is a singleton | Accepted | 3 | required |
+| [ADR-016](#adr-016) | Ungoverned 837 elements are constants, never ambient state | Accepted | 4 | required |
+| [ADR-017](#adr-017) | One 837 file per claim, named for its control number | Accepted | 4 | required |
+| [ADR-018](#adr-018) | X12 numerics are rendered without scale and read back at it | Accepted | 4 | required |
+| [ADR-019](#adr-019) | ICD-10 codes are stored dotted and emitted undotted | Accepted | 4 | required |
 
 ---
 
@@ -385,3 +389,104 @@ consequence, which follows directly from the project owner decision to carry no 
 is that claims live until the process restarts and no further: a restart is a clean slate, and a
 scaled-out deployment gives each instance its own claims. Both are recorded here rather than left to
 be discovered, and both are carried into the Bicep deployment section.
+
+## ADR-016
+
+**Every 837 element governance does not store is a constant of the writer or a function of the
+record, never ambient state.**
+Claude Opus 5, 2026-08-30.
+
+*Governed clause affected:* none is contradicted. Governance Section 2 defines the columns the
+system stores; the 005010X222A2 guide requires elements it does not name, and governance is silent
+on where those come from.
+
+The 837 needs a submitter, a receiver, an interchange control number, an interchange date and time,
+a subscriber member identifier and several structural qualifiers. Governance stores none of them.
+There are three ways to supply such an element: read it from the environment, count it, or fix it.
+Only the third is compatible with the Section 1 Zero-Mutation Rule.
+
+A control number drawn from a counter, or an interchange timestamp read from the clock, would make
+the same unedited claim export differently on every call. The governed round-trip test would then
+fail against itself, and no parser however faithful could repair it, because the varying element is
+not recoverable from the record. So the interchange date and time are derived from the stored
+BHT04, the control numbers are fixed, and the trading partner identifiers are constants a
+deployment overrides.
+
+The same reasoning forbids the opposite mistake. The database identity of a claim is a storage
+artefact with no 837 counterpart, so an importer cannot recover it; letting it reach the stream
+would mean a re-imported claim could never re-export to the file it came from.
+`Storage_identity_does_not_reach_the_stream` holds both halves: no identifier appears in the text,
+and the same governed content under fresh identities serialises identically.
+
+*Limitation, recorded honestly:* the subscriber member identifier in Loop 2010BA NM109 is a
+required element with no governed column behind it, and is emitted as the claim control number. It
+is unique per claim and stable under re-export, which is what reversibility needs, but it is a
+placeholder and not a real member identifier. A deployment that carries member identifiers needs a
+governed column for one, which is a Section 2 change and therefore the project owner's to make.
+
+## ADR-017
+
+**The archive holds one 837 file per claim, named for its governed claim control number.**
+Claude Opus 5, 2026-08-30.
+
+Governance User Story 2.2 asks for "valid individual or batched 837 files matching the database
+records", and explicitly permits either. One file per claim is chosen because it makes the Section 1
+Reversibility Guarantee checkable at the granularity the guarantee is stated at: an 837 file
+corresponds to exactly one stored record, so a mismatch names the claim it belongs to instead of
+naming a batch.
+
+Entry names lead with the control number, because that is what a user opening the archive is
+looking for, and carry the storage identity after it. Two claims may legitimately share a control
+number - a replacement claim carries the original's CLM01 under a different CLM05-3 frequency code -
+and neither may overwrite the other in the archive.
+
+Anything in the control number that a filesystem would read as structure is replaced before it
+becomes a name. An archive is extracted onto someone else's machine, and a control number is a
+governed free-text column, so a traversal or a path separator in one must not become a path.
+
+Entry timestamps are fixed rather than taken from the clock, for the reason ADR-014 gives: the same
+claims must package to the same bytes, or no export can be compared against an earlier one to show
+that nothing changed.
+
+## ADR-018
+
+**X12 numeric elements are rendered without trailing zeros and read back at the governed scale.**
+Claude Opus 5, 2026-08-30.
+
+The 5010 guide asks that a numeric element carry no insignificant trailing zeros and no trailing
+decimal point, so a charge of 1.00 is written `1`. Scale is therefore not recoverable from the text,
+and must come from somewhere else.
+
+It comes from the governed Section 2 column: `decimal(18,2)` for the two charge amounts,
+`decimal(18,4)` for the service unit count. Reading restores that scale rather than the scale the
+text happened to carry. This is the same defect FIND-002 recorded in the store, arriving at a
+different boundary: 1.00 read back as 1 changes the text of the next file written from the record,
+which is a Zero-Mutation violation even though every value compares equal.
+
+Restoring the scale is done by adding a zero of that scale, because decimal addition takes the
+larger of its operands' scales. `decimal.Round` does not do this - `decimal.Round(1m, 2)` is 1, not
+1.00 - and reaching for it here would reintroduce FIND-002 exactly.
+
+An element carrying more precision than the governed column can hold is refused rather than
+rounded. Rounding it would store an amount the file does not state, which is the FIND-001 corruption
+arriving through a different door: a well-formed file, a successful import, and the wrong money.
+
+## ADR-019
+
+**ICD-10-CM codes are stored with their decimal point and emitted without it.**
+Claude Opus 5, 2026-08-30.
+
+Governance Section 2 declares `HI01_2_PrincipalDiagnosisCode` at 10 characters and says nothing
+about format. X12 forbids the decimal point in a diagnosis element, and the seed corpus and
+generator both carry the dotted form the CDC publishes, so the two forms differ and one must be
+converted.
+
+The point always follows the third character of an ICD-10-CM code, so removing it and restoring it
+are exact inverses and the conversion is safe - but only for a code that is in the dotted form to
+begin with. FIND-011 records what happens otherwise. A code stored as `E119` would be emitted
+unchanged and read back as `E11.9`, silently changing a clinical field while producing a perfectly
+valid file.
+
+The writer therefore refuses a code that is not in canonical form rather than converting it. A loud
+failure on a malformed diagnosis is a better outcome than a quiet edit to one, and the refusal is
+what makes the round trip provable rather than merely likely.

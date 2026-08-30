@@ -141,6 +141,8 @@ public class CanonicalElementTheories
     }
 
     /// <summary>
+    /// PROVENANCE: FIND-011 - the guard that holds the mutation shut.
+    ///
     /// A code stored without the decimal point its format requires cannot be converted safely:
     /// "E119" would be emitted unchanged and read back as "E11.9", so re-exporting it would
     /// produce a different file from the one it came from. The writer refuses it rather than

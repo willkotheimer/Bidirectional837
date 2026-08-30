@@ -24,6 +24,8 @@ marker cites a finding this register does not define. The convention is ADR-011.
 | [FIND-008](#find-008) | Inherited provider seed carried invalid NPIs | Medium | Fixed | 3 | required |
 | [FIND-009](#find-009) | Routing test conflated a missing route with a missing resource | Low | Fixed | 3 | required |
 | [FIND-010](#find-010) | Governed timing budget met, but margin is thin and not in generation | Low | Mitigated | 3 | required |
+| [FIND-011](#find-011) | Undotted diagnosis code would round-trip into a different code | High | Mitigated | 4 | required |
+| [FIND-012](#find-012) | Delimiter guard rejected the segment that declares the delimiters | Low | Fixed | 4 | required |
 
 A finding whose Guard reads `not applicable` is one no test yet holds shut. There are none at
 present: every recorded finding is named by a test that fails if it returns.
@@ -295,3 +297,60 @@ in full is a client convenience rather than a governed requirement.
 reading is the stricter one and it is what the suite asserts.
 
 *Guard:* `BatchGenerationTheories.Governed_batch_size_completes_within_its_time_budget`.
+
+## FIND-011
+
+**A diagnosis code stored without its decimal point would round-trip into a different code.**
+High. Mitigated. Discovered 2026-08-30 while specifying the HI segment, before the writer existed.
+
+X12 forbids the decimal point in a diagnosis element, so `E11.9` is emitted as `E119`. The point
+always follows the third character, so restoring it on the way back is deterministic - for a code
+that carried one. A code stored as `E119` would be emitted unchanged and read back as `E11.9`.
+
+*Why it matters:* the file produced is perfectly valid, the import succeeds, and the stored
+diagnosis is a different diagnosis. It is the FIND-001 pattern applied to a clinical field rather
+than a monetary one: a Zero-Mutation breach that nothing downstream can detect, because nothing
+downstream knows what the code was supposed to be. Governance Section 2 declares the column only as
+ten characters, so the schema does not exclude the undotted form.
+
+*Resolution:* ADR-019. The writer refuses a code that is not in the canonical dotted form rather
+than converting it, so the mutation cannot occur silently.
+
+*Residual risk, and why this is Mitigated rather than Fixed:* nothing enforces canonical form at the
+persistence boundary. Every write path that exists today produces canonical codes - the generator
+draws from a dotted seed corpus, and the Feature 3 parser will restore the point on the way in - but
+a future path that stored `E119` would make that claim unexportable, failing loudly at export
+instead of at the point the bad value was written. Moving the constraint onto the governed column
+would settle it, and that is a Section 2 change, which is the project owner's to make.
+
+*Guard:* `CanonicalElementTheories.Diagnosis_code_that_is_not_in_the_governed_canonical_form_is_refused`,
+alongside the round-trip Theory over the corpus diagnoses.
+
+*Reportable as:* a mutation that a schema review could not have found. The governed column
+declaration is correct, the value stored in it is a real ICD-10-CM code, and the round trip still
+changes it, because the standard and the database disagree about one character.
+
+## FIND-012
+
+**The delimiter guard rejected the one segment whose job is to declare the delimiters.**
+Low. Fixed. Discovered 2026-08-30 by the first green run of the serializer.
+
+`No_emitted_element_carries_a_delimiter_character` asserted that no element anywhere in the
+interchange carries an X12 delimiter, and failed on ISA - correctly, in the sense that ISA11 is the
+repetition separator and ISA16 the component separator, each carried as its own literal value.
+
+*Why it matters:* the guard is real and worth keeping. An unescaped separator inside a name or an
+address splits one element into two and shifts every element after it, which is how an EDI file
+becomes silently wrong rather than loudly invalid. A guard that fails on correct output gets
+weakened or deleted, and the protection is lost with it. The same failure mode is recorded in
+FIND-006, where a naming guard rejected valid X12 segment identifiers.
+
+*Resolution:* the Theory is now
+`No_emitted_element_outside_the_ISA_header_carries_a_delimiter_character`, and the exemption is
+stated as a property of ISA rather than as a concession. The writer is unchanged: it was correct.
+
+*Guard:* the renamed Theory itself, which still asserts the rule over every other segment and
+refuses to pass vacuously.
+
+*Reportable as:* a test defect, not a product defect - but one worth recording, because the tempting
+fix was to make the writer wrong to keep the test green.
