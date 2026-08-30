@@ -36,7 +36,10 @@ beforeEach(() => {
       return jsonOk([aClaim({ CLM01_ClaimControlNumber: 'CLM-1' }), aClaim({ CLM01_ClaimControlNumber: 'CLM-2' })], 201);
     }
     if (url.includes('/api/v1/claims/export-zip')) {
-      return new Response(new Blob(['PK']), {
+      // PROVENANCE: FIND-023 - a string body, not a Blob. jsdom's Blob has no stream(), so undici's Response constructor
+      // rejects it - asynchronously, after this test has already asserted on the request and gone
+      // green. The download path then never completes here, which is the half the test cannot see.
+      return new Response('PK', {
         status: 200,
         headers: { 'Content-Disposition': 'attachment; filename="claims-837.zip"' },
       });

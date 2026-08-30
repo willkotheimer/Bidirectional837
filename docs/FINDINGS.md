@@ -36,6 +36,7 @@ marker cites a finding this register does not define. The convention is ADR-011.
 | [FIND-020](#find-020) | Governed field names mangled on the wire since Section 2 | High | Fixed | 8 | required |
 | [FIND-021](#find-021) | The store lost DateTimeKind, so a persisted claim rendered differently | Medium | Fixed | 8 | required |
 | [FIND-022](#find-022) | A claim's representation depended on which route returned it | High | Fixed | 8 | required |
+| [FIND-023](#find-023) | A test asserted the request and never saw the response reject | Medium | Fixed | 11 | required |
 
 A finding whose Guard reads `not applicable` is one no test yet holds shut. There are none at
 present: every recorded finding is named by a test that fails if it returns. FIND-020 was recorded as Open while its guard
@@ -733,3 +734,35 @@ schema is compared without anyone remembering to add it.
 
 *Reportable as:* an inconsistency between two endpoints that each looked correct alone. Every test
 of either route passed; only a test that used both could see it.
+
+## FIND-023
+
+**A test asserted the request and never saw the response reject.**
+Medium. Fixed. Discovered 2026-08-30, while running the UI suite before committing the deployment
+branch — not by a failure, but by an "Errors 1" line printed beneath "120 passed".
+
+`App.test.tsx` mocked the 837 export as `new Response(new Blob(['PK']), …)`. jsdom's `Blob` has no
+`stream()`, so undici's `Response` constructor rejects it. The rejection is asynchronous and arrives
+after the test — whose assertion is that the client *asks the server* for the archive rather than
+building one locally — has already passed. Vitest reported it as an unhandled rejection, which does
+not fail a run.
+
+*Why it matters:* the test named the right property and proved half of it. It established that the
+request went out; it could not establish that anything came back, because the response never
+constructed. `getBlob` reads the body and the `Content-Disposition` filename, and neither was
+exercised by the test that appeared to cover the download. A regression in either would have been
+invisible here.
+
+This is the same shape as FIND-017, at a smaller scale: a stub written to match our expectations,
+answering a question the test never actually asked. The tell was not a red test. It was a line
+underneath a green one.
+
+*Resolution:* the mock returns a string body, which constructs and still yields a `Blob` from
+`.blob()`, so the download path runs to completion inside the test.
+
+*Guard:* the existing Theory in `App.test.tsx`, which now completes the path it was written for. The
+run is clean of unhandled rejections, which is itself the signal — a mocked response that cannot be
+constructed reappears as an error line, not a failure.
+
+*Reportable as:* a reminder that "all green" and "all correct" are different claims, and that
+warnings printed beside a passing suite are the cheapest place a defect ever shows itself.

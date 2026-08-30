@@ -49,12 +49,21 @@ export function Field({
   children,
   ...rest
 }: SelectHTMLAttributes<HTMLSelectElement> & { label: string; hint?: string; id: string }) {
+  const hintId = hint ? `${id}-hint` : undefined;
+
   return (
-    <label className="flex flex-col gap-1.5" htmlFor={id}>
-      <span className="text-sm font-medium">{label}</span>
+    // The hint sits outside the label and is linked by aria-describedby rather than nested inside
+    // it. Nested, it became part of the control's accessible name - "State Selects the billing
+    // provider." - which is wrong for a screen reader and was caught by a Playwright query looking
+    // for a control named exactly "State". A description is not a name.
+    <div className="flex flex-col gap-1.5">
+      <label className="text-sm font-medium" htmlFor={id}>
+        {label}
+      </label>
       <select
         {...rest}
         id={id}
+        aria-describedby={hintId}
         className={cn(
           'rounded-md border border-line bg-white px-2.5 py-1.5 text-sm',
           'focus:outline-2 focus:outline-offset-1 focus:outline-accent',
@@ -63,8 +72,12 @@ export function Field({
       >
         {children}
       </select>
-      {hint && <span className="text-xs text-muted">{hint}</span>}
-    </label>
+      {hint && (
+        <span id={hintId} className="text-xs text-muted">
+          {hint}
+        </span>
+      )}
+    </div>
   );
 }
 

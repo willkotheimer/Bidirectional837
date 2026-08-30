@@ -25,3 +25,9 @@ docs/tdd-evidence/
 node_modules/
 dist/
 *.tsbuildinfo
+
+# Playwright run artifacts from the portfolio screenshot capture. The capture spec is source and is
+# tracked; its output is not - the screenshots themselves are committed in the portfolio repo, where
+# they are actually served from.
+src/Translator.UI/test-results/
+src/Translator.UI/playwright-report/
