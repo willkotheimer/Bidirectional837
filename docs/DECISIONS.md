@@ -19,7 +19,7 @@ define. The convention itself is ADR-008.
 |----|----------|--------|---------|-------------|
 | [ADR-001](#adr-001) | API and engine first; React deferred | Accepted | 1 | not applicable |
 | [ADR-002](#adr-002) | Ephemeral SQLite replaces SQL Server | Accepted | 1 | required |
-| [ADR-003](#adr-003) | Governed entities are a verbatim transcription | Accepted | 1 | required |
+| [ADR-003](#adr-003) | Governed entities are a verbatim transcription | Amended by ADR-026 | 1 | required |
 | [ADR-004](#adr-004) | Money stored as integer minor units | Accepted | 1 | required |
 | [ADR-005](#adr-005) | String length enforcement moves to the API layer | Discharged by ADR-010 | 1 | required |
 | [ADR-006](#adr-006) | One pull request per section, delivered by branch push | Accepted | 1 | not applicable |
@@ -42,6 +42,7 @@ define. The convention itself is ADR-008.
 | [ADR-023](#adr-023) | Provider data comes from a distilled NPPES snapshot | Accepted | 6 | required |
 | [ADR-024](#adr-024) | The code catalogue is built backwards from the fee schedules | Accepted | 7 | required |
 | [ADR-025](#adr-025) | Catalogue and jurisdiction routes serve the generation form | Accepted | 7 | required |
+| [ADR-026](#adr-026) | Governance names the guardrails; the application is Translator | Accepted | 7a | required |
 
 ---
 
@@ -85,6 +86,10 @@ pass vacuously on the in-memory provider.
 **`Entities/ClaimHeader.cs` is a verbatim transcription of governance Section 2, not a design
 artefact.**
 Claude Opus 5, 2026-08-29.
+
+*Amended by ADR-026, 2026-08-30: one line is no longer verbatim. The governed schema declares
+`namespace Governance.Domain.Entities`; the file now declares `namespace Translator.Domain.Entities`.
+Every other character still holds, and the departure is recorded in ADR-026.*
 
 The entity classes are copied character for character from the governed schema, including its
 comments and its declared column types. The file carries a header saying so. Any change to a
@@ -216,7 +221,7 @@ added, following the versioning and pluralisation already established by the two
 
 These are additions to the governed surface, not deviations from it: no governed route is changed,
 renamed or removed. The authored contract in `docs/api/swagger.json` is the full published surface,
-and `Governance.Api.Tests` asserts the application exposes exactly the paths that contract declares
+and `Translator.Api.Tests` asserts the application exposes exactly the paths that contract declares
 and no others.
 
 `ReversibilityReportDto` is a new response contract with no counterpart in governance Section 3. It
@@ -240,7 +245,7 @@ validation metadata, so the annotations are an addition to it.
 
 The addition is strictly non-structural. **No field is added, removed, renamed or retyped.** Every
 annotation mirrors a limit that governance Section 2 already states for the corresponding column,
-and `Governance.Contracts.Tests` proves the mirroring rather than trusting it: a Theory walks the
+and `Translator.Contracts.Tests` proves the mirroring rather than trusting it: a Theory walks the
 governed entity properties and asserts that each DTO property of the same name carries the same
 maximum length and the same optionality. A limit that drifts from Section 2 fails the build.
 
@@ -612,7 +617,7 @@ truncated: a truncated name is not that provider's name, and storing one would p
 the seed. Providers carrying an X12 delimiter are dropped for the same reason — the writer refuses
 them, so they could never be serialised.
 
-The check-digit rule is reimplemented in Python rather than shared with `Governance.Domain`, so the
+The check-digit rule is reimplemented in Python rather than shared with `Translator.Domain`, so the
 seed and the domain agree by independent arrival. If they ever disagree, the seed integrity Theories
 fail, which is the point of writing it twice.
 
@@ -686,6 +691,47 @@ the charge the catalogue advertised.
 An unknown category is answered 404 rather than with an empty list, for the same reason: an empty
 list renders as a working-looking selector for something that cannot work.
 
-The jurisdiction names are a fixed list in `Governance.Generation.UnitedStates` rather than a package
+The jurisdiction names are a fixed list in `Translator.Generation.UnitedStates` rather than a package
 dependency. They change on a timescale of decades, there are fifty-two of them, and the dependency
 would be a larger surface than the data.
+
+## ADR-026
+
+**"Governance" names the guardrails. The application is "Translator".**
+Rule set by the project owner, 2026-08-30. Applied by Claude Opus 5.
+
+*Governed clause affected:* governance Section 2 declares `namespace Governance.Domain.Entities` in
+its mandatory schema, and Section 3 declares `namespace Governance.Contracts.DTOs` in its mandatory
+DTOs. Both are literal text in the binding document. This decision departs from both.
+
+The project owner asked why every namespace was `Governance` rather than the application's own name,
+and then set the rule: if the application itself is being called Governance, that is wrong; if
+Governance means the development guardrails, that is what the name should mean.
+
+The origin was not a design choice. Those two namespaces are dictated by governance.txt, ADR-003
+transcribed the schema character for character as instructed, and every project added afterwards
+took the same root for consistency. The result was an application named after the document that
+governs it, whose own name — 837Translator in `docs/PROVENANCE.md`, Bidirectional837 on the
+solution — appeared nowhere in the source.
+
+*What moves:* `Translator.Domain`, `Translator.Contracts`, `Translator.Generation`,
+`Translator.Edi`, `Translator.Api` and their test projects, plus `Translator.TestSupport`.
+
+*What stays:* `Governance.Traceability.Tests`. That suite reads `docs/DECISIONS.md`,
+`docs/FINDINGS.md` and `docs/TDD-EVIDENCE.md` and measures the code against them. It is not part of
+the translator; it is the governance, and under the owner's own rule that is exactly what the name
+should mean.
+
+*Why the letter of Sections 2 and 3 is broken rather than kept.* Keeping it would mean the one
+clause governance states about naming contradicts the one rule the project owner states about
+naming, and the owner's rule is the better of the two: a namespace should say what the code is. The
+governed *intent* of those sections is the schema and the DTO shapes — the field names, types,
+lengths and column mappings — and every one of those is untouched. `ClaimHeader` still declares
+`Loop2010AA_NM109_BillingProviderNpi` at `StringLength(10)` exactly as Section 2 writes it. What
+changed is the container, not the contract. ADR-003 is amended rather than quietly left standing,
+because it claimed a character-for-character transcription and that claim now has one exception.
+
+*Enforced, not agreed.* `NamespaceTheories` asserts the rule over the source: every project and
+every declared namespace under `Translator`, except the guardrail suite; and no application file
+referencing a Governance-rooted type, which is the failure a half-done rename leaves behind and
+which would compile until the old assembly stopped being produced.

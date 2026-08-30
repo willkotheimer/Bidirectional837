@@ -68,7 +68,7 @@ ISSUER_PREFIX = "80840"
 def npi_check_digit_is_valid(candidate: str) -> bool:
     """The NPI check digit rule: Luhn over the identifier prefixed with the CMS issuer 80840.
 
-    Reimplemented here rather than shared with Governance.Domain so the seed and the domain agree
+    Reimplemented here rather than shared with Translator.Domain so the seed and the domain agree
     by independent arrival rather than by construction. If they ever disagree, the seed integrity
     theories fail, which is the point.
     """
