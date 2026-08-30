@@ -43,7 +43,7 @@ records the completion of the build. Architectural decisions, and every departur
   and docs (GitHub Copilot). No .NET solution existed; governance Sections 2-4 mandate one.
 - Confirmed three decisions with the project owner before writing code: build order (ADR-001),
   persistence mechanism (ADR-002), and pull request delivery (ADR-006).
-- Transcribed the governance Section 2 entity model verbatim into `src/Governance.Domain/Entities`
+- Transcribed the governance Section 2 entity model verbatim into `src/Translator.Domain/Entities`
   and marked it as a normative transcription (ADR-003).
 - Wrote the Section 1 test suite first and recorded it failing, per governance Section 4:
   164 failed / 26 passed, `docs/tdd-evidence/section-1-red.txt`. Every invariant is an xUnit
@@ -63,14 +63,14 @@ records the completion of the build. Architectural decisions, and every departur
 
 Data sources: no new external data was introduced in this section. The claim corpus used as Theory
 data is deterministic and synthetic, contains no PHI, and is generated in-process by
-`tests/Governance.Domain.Tests/Corpus/GovernedClaimCorpus.cs`.
+`tests/Translator.Domain.Tests/Corpus/GovernedClaimCorpus.cs`.
 
 ### Section 2 — API contracts, DTO validation and decision traceability (2026-08-29)
 
 - Authored `docs/api/swagger.json` before writing any controller, per governance Section 4. It is
-  the published surface, and `Governance.Api.Tests` measures the application against it rather than
+  the published surface, and `Translator.Api.Tests` measures the application against it rather than
   the reverse. Governance names two routes; the four it does not name are recorded in ADR-009.
-- Transcribed the governance Section 3 DTOs into `src/Governance.Contracts`.
+- Transcribed the governance Section 3 DTOs into `src/Translator.Contracts`.
 - Adopted the decision provenance marking convention requested by the project owner (ADR-008).
   Every code-bearing decision now carries a `PROVENANCE: ADR-NNN` comment, and
   `Governance.Traceability.Tests` enforces the convention in both directions. Section 1 sources were
@@ -155,7 +155,7 @@ data is deterministic and synthetic, contains no PHI, and is generated in-proces
   residual risk stated. FIND-012: the delimiter guard rejected ISA, the one segment whose purpose is
   to declare the delimiters — a test defect, recorded rather than quietly fixed, because the
   tempting repair was to make the writer wrong.
-- The claim corpus moved to `tests/Governance.TestSupport` so the EDI, persistence and API suites
+- The claim corpus moved to `tests/Translator.TestSupport` so the EDI, persistence and API suites
   measure against the same deterministic claims rather than against corpora that could drift apart.
 - Verified outside the suite as well as inside it: the running application was driven end to end,
   a batch generated over HTTP and the archive downloaded and unpacked, and the emitted interchange
@@ -298,3 +298,25 @@ None of the four archives is committed; they live in `seed/full/`, which `.gitig
 `scripts/distill_codes.py` re-derives `seed/hcpcs_categories.csv` and `seed/charges_sample.csv` from
 them. CPT is never read: Level I is five digits and AMA copyright, the D series is CDT and ADA
 copyright, and both exclusions are asserted by `CatalogIntegrityTheories` rather than remembered.
+
+### Section 7a — Governance names the guardrails; the application is Translator (2026-08-30)
+
+- The project owner asked why every namespace was `Governance` rather than the application's own
+  name, and set the rule: if the application itself is called Governance that is wrong, and if
+  Governance means the development guardrails then that is what it should mean.
+- The origin was not a design choice. governance.txt declares `namespace Governance.Domain.Entities`
+  and `namespace Governance.Contracts.DTOs` as literal text in its mandatory schema and DTOs, ADR-003
+  transcribed them character for character as instructed, and every later project took the same root
+  for consistency. The application ended up named after the document governing it.
+- Renamed: the five application projects, their five test projects, and the shared test support
+  library. Kept: `Governance.Traceability.Tests`, which reads the registers and measures the code
+  against them - it is the governance, not the translator.
+- Recorded as ADR-026, which is an explicit departure from the letter of governance Sections 2 and 3.
+  ADR-003 is amended rather than left standing, because it claimed a character-for-character
+  transcription and that claim now has exactly one exception: the namespace line. Every field name,
+  type, length and column mapping in the governed schema is untouched.
+- The rule is enforced by `NamespaceTheories` rather than agreed, including one Theory whose only job
+  is to catch a half-done rename - an application file still referencing a Governance-rooted type
+  would compile until the old assembly stopped being produced.
+- No behaviour changed. Recorded RED: 119 failed / 1902 passed, the failures being the naming rule
+  itself. Recorded GREEN: see `docs/TDD-EVIDENCE.md`.

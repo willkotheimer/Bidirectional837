@@ -3,7 +3,7 @@
   "info": {
     "title": "Bidirectional 837 Translator",
     "version": "v1",
-    "description": "Governed API surface for the bi-directional 837P generation and translation engine. This document is the authored contract required by governance.txt Section 4 ('API Contracts First'). It is committed before the controllers beneath it exist, and Governance.Api.Tests asserts that the running application conforms to it. Routes not named by governance are recorded in ADR-009."
+    "description": "Governed API surface for the bi-directional 837P generation and translation engine. This document is the authored contract required by governance.txt Section 4 ('API Contracts First'). It is committed before the controllers beneath it exist, and Translator.Api.Tests asserts that the running application conforms to it. Routes not named by governance are recorded in ADR-009."
   },
   "paths": {
     "/api/v1/bills/batch-generate": {

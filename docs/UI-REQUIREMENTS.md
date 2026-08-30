@@ -37,7 +37,7 @@ Formik (`useFormik`) for the generation form.
 
 Subscriber names are made up, and charges are the standard charge for the procedure. Both are
 already true server-side and neither is a client concern: the synthetic name list and the charge
-schedule live in `Governance.Generation`, and the charge fallback is deterministic (ADR-013).
+schedule live in `Translator.Generation`, and the charge fallback is deterministic (ADR-013).
 
 **Flow.** Creation is local first: the generated batch populates a React table on screen. From
 there, one button exports to CSV and one to 837.

@@ -27,6 +27,7 @@ two, or if a section reaches `docs/DECISIONS.md` or `docs/FINDINGS.md` without r
 | 5 | Feature 3, ingestion, parsing and the reversibility proof | 191 | 1185 | 1393 | 0 | `e7588ac` |
 | 6 | Provider data from a distilled NPPES snapshot | 383 | 1413 | 1815 | 0 | `00640a6` |
 | 7 | Priced code catalogue and the routes that serve it | 16 | 1862 | 1889 | 0 | `fbb541b` |
+| 7a | Governance names the guardrails; the application is Translator | 119 | 1902 | 2026 | 0 | `f7dfb7e` |
 
 The GREEN commit is not recorded, because it cannot be: a row is written by the commit that turns
 its own section green, so that commit cannot carry its own hash. FIND-013 records the discovery. It
@@ -78,6 +79,15 @@ The largest RED run so far. Two of the failures were again traceability, for ADR
 The run also settled the shape of the writer: the Theories requiring that the same claim serialise
 to the same bytes, and that storage identity never reach the stream, are what forbid reading the
 clock or a counter for any element the standard requires and governance does not store.
+
+### Section 7a — Governance names the guardrails; the application is Translator
+
+A rename, so the RED run is unusual: the failing tests are the naming rule itself rather than a
+missing capability. 119 failures, high because the rule is asserted per project and per file, so one
+unrenamed project fails once for itself and once for every source file it holds.
+
+One Theory exists only to catch a half-done rename - an application file still referencing a
+Governance-rooted type would compile until the old assembly stopped being produced.
 
 ### Section 7 — Priced code catalogue and the routes that serve it
 

@@ -11,7 +11,7 @@ Two schedules are read, both public domain and both HCPCS Level II only:
   * the Medicare Part B payment limit (ASP) file, which prices a drug in dollars per unit.
 
 CPT is never read. Level I codes are five digits and belong to the AMA; the D series is dental and
-belongs to the ADA. Both are excluded by pattern, and Governance.Generation.Tests asserts the
+belongs to the ADA. Both are excluded by pattern, and Translator.Generation.Tests asserts the
 exclusion so the copyright boundary is checked by the build rather than remembered.
 
 Usage:
