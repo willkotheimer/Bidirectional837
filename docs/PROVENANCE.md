@@ -214,3 +214,15 @@ data is deterministic and synthetic, contains no PHI, and is generated in-proces
   `application/json` since Section 2, because a class-level `[Produces]` is a result filter rather
   than documentation, and nothing had ever asserted a response media type.
 - Data provenance: no new external data, no PHI. The corpus remains synthetic and in-process.
+
+### React client requirements recorded (2026-08-30)
+
+- The project owner set out the React client requirements during the Section 5 work. They are
+  recorded in `docs/UI-REQUIREMENTS.md` rather than left in the conversation that produced them,
+  which is the same reason `docs/FINDINGS.md` exists (ADR-011).
+- They are requirements, not decisions, so no ADR is raised by the document itself. Two gaps are
+  recorded in it: the medical code catalog and the jurisdiction state list are both needed by the
+  form and neither is published by `docs/api/swagger.json`. Both are routes governance does not
+  name, so both need a register entry under the ADR-009 convention before they are added.
+- ADR-001 deferred the client until the contracts were frozen. They are: as of Section 5 every
+  published operation has an engine behind it and none answers 501.
