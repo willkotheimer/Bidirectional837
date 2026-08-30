@@ -1,16 +1,981 @@
 procedure_code,description,price
-J0670,Injection mepivacaine hydrochloride per 10 ml,18.40
-J2001,Injection lidocaine hydrochloride for intravenous infusion 10 mg,12.75
-J2250,Injection midazolam hydrochloride per 1 mg,9.60
-J3010,Injection fentanyl citrate 0.1 mg,7.85
-G0500,Moderate sedation services by the physician performing a GI endoscopic service,142.30
-G0151,Services of a qualified physical therapist in the home health setting each 15 minutes,58.20
-G0157,Services of a qualified physical therapist assistant in the home health setting each 15 minutes,41.05
-G0283,Electrical stimulation unattended as part of a therapy plan of care,22.15
-E0730,Transcutaneous electrical nerve stimulation device four or more leads,312.00
-S8990,Physical or manipulative therapy performed for maintenance rather than restoration,64.50
-G0403,Electrocardiogram routine ECG with 12 leads screening,26.40
-G0404,Electrocardiogram routine ECG with 12 leads tracing only,14.90
-G0405,Electrocardiogram routine ECG with 12 leads interpretation and report only,17.25
-G0166,External counterpulsation per treatment session,198.75
-E0616,Implantable cardiac event recorder with memory activator and programmer,2845.00
+A2002,"Mirragen advanced wound matrix, per square centimeter (add-on, list separately in addition to primary procedure)",127.25
+A2015,"Phoenix wound matrix, per square centimeter (add-on, list separately in addition to primary procedure)",127.25
+A2029,"Mirotract wound matrix sheet, per cubic centimeter (add-on, list separately in addition to primary procedure)",127.25
+A2031,"Mirodry wound matrix, per square centimeter (add-on, list separately in addition to primary procedure)",127.25
+A2045,"Novashield or novogen wound matrix (add-on, list separately in addition to primary procedure), per square centimeter",127.25
+A4255,"Platforms for home blood glucose monitor, 50 per box",5.85
+A4271,"Integrated lancing and blood sample testing cartridges for home blood glucose monitor, per 50 tests",34.10
+A4461,"Surgical dressing holder, non-reusable, each",4.70
+A4463,"Surgical dressing holder, reusable, each",18.97
+A4481,"Tracheostoma filter, any type, any size, each",0.52
+A4559,"Coupling gel or paste, for use with ultrasound device, per oz",0.13
+A4608,"Transtracheal oxygen catheter, each",71.44
+A4616,"Tubing (oxygen), per foot",0.08
+A4623,"Tracheostomy, inner cannula",9.34
+A4625,Tracheostomy care kit for new tracheostomy,9.87
+A4626,"Tracheostomy cleaning brush, each",4.54
+A4629,Tracheostomy care kit for established tracheostomy,6.63
+A6010,"Collagen based wound filler, dry form, sterile, per gram of collagen",44.14
+A6011,"Collagen based wound filler, gel/paste, per gram of collagen",3.25
+A6021,"Collagen dressing, sterile, size 16 sq. in. or less, each",29.97
+A6022,"Collagen dressing, sterile, size more than 16 sq. in. but less than or equal to 48 sq. in., each",29.97
+A6023,"Collagen dressing, sterile, size more than 48 sq. in., each",271.22
+A6024,"Collagen dressing wound filler, sterile, per 6 inches",8.81
+A6154,"Wound pouch, each",20.49
+A6196,"Alginate or other fiber gelling dressing, wound cover, sterile, pad size 16 sq. in. or less, each dressing",10.49
+A6197,"Alginate or other fiber gelling dressing, wound cover, sterile, pad size more than 16 sq. in. but less than or equal to 48 sq. in., each dressing",23.44
+A6199,"Alginate or other fiber gelling dressing, wound filler, sterile, per 6 inches",7.52
+A6203,"Composite dressing, sterile, pad size 16 sq. in. or less, with any size adhesive border, each dressing",4.80
+A6204,"Composite dressing, sterile, pad size more than 16 sq. in. but less than or equal to 48 sq. in., with any size adhesive border, each dressing",8.86
+A6209,"Foam dressing, wound cover, sterile, pad size 16 sq. in. or less, without adhesive border, each dressing",10.65
+A6210,"Foam dressing, wound cover, sterile, pad size more than 16 sq. in. but less than or equal to 48 sq. in., without adhesive border, each dressing",28.40
+A6211,"Foam dressing, wound cover, sterile, pad size more than 48 sq. in., without adhesive border, each dressing",41.86
+A6212,"Foam dressing, wound cover, sterile, pad size 16 sq. in. or less, with any size adhesive border, each dressing",13.84
+A6214,"Foam dressing, wound cover, sterile, pad size more than 48 sq. in., with any size adhesive border, each dressing",14.68
+A6216,"Gauze, non-impregnated, non-sterile, pad size 16 sq. in. or less, without adhesive border, each dressing",0.05
+A6219,"Gauze, non-impregnated, sterile, pad size 16 sq. in. or less, with any size adhesive border, each dressing",1.36
+A6220,"Gauze, non-impregnated, sterile, pad size more than 16 sq. in. but less than or equal to 48 sq. in., with any size adhesive border, each dressing",3.69
+A6222,"Gauze, impregnated with other than water, normal saline, or hydrogel, sterile, pad size 16 sq. in. or less, without adhesive border, each dressing",3.04
+A6223,"Gauze, impregnated with other than water, normal saline, or hydrogel, sterile, pad size more than 16 sq. in., but less than or equal to 48 sq. in., without adhesive border, each dressing",3.46
+A6224,"Gauze, impregnated with other than water, normal saline, or hydrogel, sterile, pad size more than 48 sq. in., without adhesive border, each dressing",5.13
+A6229,"Gauze, impregnated, water or normal saline, sterile, pad size more than 16 sq. in. but less than or equal to 48 sq. in., without adhesive border, each dressing",5.13
+A6231,"Gauze, impregnated, hydrogel, for direct wound contact, sterile, pad size 16 sq. in. or less, each dressing",6.68
+A6232,"Gauze, impregnated, hydrogel, for direct wound contact, sterile, pad size greater than 16 sq. in., but less than or equal to 48 sq. in., each dressing",9.78
+A6233,"Gauze, impregnated, hydrogel, for direct wound contact, sterile, pad size more than 48 sq. in., each dressing",27.33
+A6234,"Hydrocolloid dressing, wound cover, sterile, pad size 16 sq. in. or less, without adhesive border, each dressing",9.33
+A6235,"Hydrocolloid dressing, wound cover, sterile, pad size more than 16 sq. in. but less than or equal to 48 sq. in., without adhesive border, each dressing",23.97
+A6236,"Hydrocolloid dressing, wound cover, sterile, pad size more than 48 sq. in., without adhesive border, each dressing",38.83
+A6237,"Hydrocolloid dressing, wound cover, sterile, pad size 16 sq. in. or less, with any size adhesive border, each dressing",11.27
+A6238,"Hydrocolloid dressing, wound cover, sterile, pad size more than 16 sq. in. but less than or equal to 48 sq. in., with any size adhesive border, each dressing",32.50
+A6240,"Hydrocolloid dressing, wound filler, paste, sterile, per ounce",17.45
+A6241,"Hydrocolloid dressing, wound filler, dry form, sterile, per gram",3.66
+A6242,"Hydrogel dressing, wound cover, sterile, pad size 16 sq. in. or less, without adhesive border, each dressing",8.63
+A6243,"Hydrogel dressing, wound cover, sterile, pad size more than 16 sq. in. but less than or equal to 48 sq. in., without adhesive border, each dressing",17.56
+A6244,"Hydrogel dressing, wound cover, sterile, pad size more than 48 sq. in., without adhesive border, each dressing",55.99
+A6245,"Hydrogel dressing, wound cover, sterile, pad size 16 sq. in. or less, with any size adhesive border, each dressing",10.36
+A6246,"Hydrogel dressing, wound cover, sterile, pad size more than 16 sq. in. but less than or equal to 48 sq. in., with any size adhesive border, each dressing",14.16
+A6247,"Hydrogel dressing, wound cover, sterile, pad size more than 48 sq. in., with any size adhesive border, each dressing",33.89
+A6248,"Hydrogel dressing, wound filler, gel, per fluid ounce",23.15
+A6251,"Specialty absorptive dressing, wound cover, sterile, pad size 16 sq. in. or less, without adhesive border, each dressing",2.84
+A6252,"Specialty absorptive dressing, wound cover, sterile, pad size more than 16 sq. in. but less than or equal to 48 sq. in., without adhesive border, each dressing",4.64
+A6253,"Specialty absorptive dressing, wound cover, sterile, pad size more than 48 sq. in., without adhesive border, each dressing",9.03
+A6254,"Specialty absorptive dressing, wound cover, sterile, pad size 16 sq. in. or less, with any size adhesive border, each dressing",1.70
+A6255,"Specialty absorptive dressing, wound cover, sterile, pad size more than 16 sq. in. but less than or equal to 48 sq. in., with any size adhesive border, each dressing",4.34
+A6257,"Transparent film, sterile, 16 sq. in. or less, each dressing",2.18
+A6259,"Transparent film, sterile, more than 48 sq. in., each dressing",15.59
+A6266,"Gauze, impregnated, other than water, normal saline, or zinc paste, sterile, any width, per linear yard",2.72
+A6402,"Gauze, non-impregnated, sterile, pad size 16 sq. in. or less, without adhesive border, each dressing",0.15
+A6403,"Gauze, non-impregnated, sterile, pad size more than 16 sq. in. less than or equal to 48 sq. in., without adhesive border, each dressing",0.58
+A6441,"Padding bandage, non-elastic, non-woven/non-knitted, width greater than or equal to three inches and less than five inches, per yard",0.97
+A6442,"Conforming bandage, non-elastic, knitted/woven, non-sterile, width less than three inches, per yard",0.23
+A6443,"Conforming bandage, non-elastic, knitted/woven, non-sterile, width greater than or equal to three inches and less than five inches, per yard",0.40
+A6444,"Conforming bandage, non-elastic, knitted/woven, non-sterile, width greater than or equal to 5 inches, per yard",0.80
+A6445,"Conforming bandage, non-elastic, knitted/woven, sterile, width less than three inches, per yard",0.45
+A6446,"Conforming bandage, non-elastic, knitted/woven, sterile, width greater than or equal to three inches and less than five inches, per yard",0.55
+A6447,"Conforming bandage, non-elastic, knitted/woven, sterile, width greater than or equal to five inches, per yard",0.97
+A6448,"Light compression bandage, elastic, knitted/woven, width less than three inches, per yard",1.64
+A6449,"Light compression bandage, elastic, knitted/woven, width greater than or equal to three inches and less than five inches, per yard",2.50
+A6450,"Light compression bandage, elastic, knitted/woven, width greater than or equal to five inches, per yard",2.50
+A6451,"Moderate compression bandage, elastic, knitted/woven, load resistance of 1.25 to 1.34 foot pounds at 50% maximum stretch, width greater than or equal to three inches and less than five inches, per yard",2.50
+A6452,"High compression bandage, elastic, knitted/woven, load resistance greater than or equal to 1.35 foot pounds at 50% maximum stretch, width greater than or equal to three inches and less than five inches, per yard",8.40
+A6453,"Self-adherent bandage, elastic, non-knitted/non-woven, width less than three inches, per yard",0.90
+A6454,"Self-adherent bandage, elastic, non-knitted/non-woven, width greater than or equal to three inches and less than five inches, per yard",1.12
+A6455,"Self-adherent bandage, elastic, non-knitted/non-woven, width greater than or equal to five inches, per yard",1.99
+A6456,"Zinc paste impregnated bandage, non-elastic, knitted/woven, width greater than or equal to three inches and less than five inches, per yard",1.79
+A6457,"Tubular dressing with or without elastic, any width, per linear yard",1.62
+A7501,"Tracheostoma valve, including diaphragm, each",149.66
+A7502,"Replacement diaphragm/faceplate for tracheostoma valve, each",71.15
+A7503,"Filter holder or filter cap, reusable, for use in a tracheostoma heat and moisture exchange system, each",16.17
+A7504,"Filter for use in a tracheostoma heat and moisture exchange system, each",0.97
+A7508,"Housing and integrated adhesive, for use in a tracheostoma heat and moisture exchange system and/or with a tracheostoma valve, each",4.09
+A7520,"Tracheostomy/laryngectomy tube, non-cuffed, polyvinylchloride (pvc), silicone or equal, each",67.66
+A7521,"Tracheostomy/laryngectomy tube, cuffed, polyvinylchloride (pvc), silicone or equal, each",67.04
+A7522,"Tracheostomy/laryngectomy tube, stainless steel or equal (sterilizable and reusable), each",64.36
+A7524,"Tracheostoma stent/stud/button, each",110.33
+A7525,"Tracheostomy mask, each",2.94
+A7526,"Tracheostomy tube collar/holder, each",4.83
+A7527,"Tracheostomy/laryngectomy tube plug/stop, each",5.10
+A9573,"Injection, gadopiclenol, 1 ml",3.15
+A9575,"Injection, gadoterate meglumine, 0.1 ml",0.09
+A9576,"Injection, gadoteridol, (prohance multipack), per ml",1.37
+A9577,"Injection, gadobenate dimeglumine (multihance), per ml",1.79
+A9578,"Injection, gadobenate dimeglumine (multihance multipack), per ml",1.70
+A9579,"Injection, gadolinium-based magnetic resonance contrast agent, not otherwise specified (nos), per ml",1.44
+A9581,"Injection, gadoxetate disodium, 1 ml",14.75
+A9585,"Injection, gadobutrol, 0.1 ml",0.26
+E0491,"Oral device/appliance for neuromuscular electrical stimulation of the tongue muscle, used in conjunction with the power source and control electronics unit, controlled by hardware remote, 90-day supply",105.37
+E1701,"Replacement cushions for jaw motion rehabilitation system, pkg. of 6",15.11
+E1702,"Replacement measuring scales for jaw motion rehabilitation system, pkg. of 200",32.15
+G0012,"Injection of pre-exposure prophylaxis (prep) drug for hiv prevention, under skin or into muscle",15.36
+G0101,Cervical or vaginal cancer screening; pelvic and clinical breast examination,39.75
+G0102,Prostate cancer screening; digital rectal examination,24.38
+G0104,Colorectal cancer screening; flexible sigmoidoscopy,214.76
+G0105,Colorectal cancer screening; colonoscopy on individual at high risk,378.09
+G0117,Glaucoma screening for high risk patients furnished by an optometrist or ophthalmologist,64.46
+G0118,Glaucoma screening for high risk patient furnished under the direct supervision of an optometrist or ophthalmologist,40.41
+G0121,Colorectal cancer screening; colonoscopy on individual not meeting criteria for high risk,378.42
+G0124,"Screening cytopathology, cervical or vaginal (any reporting system), collected in preservative fluid, automated thin layer preparation, requiring interpretation by physician",24.05
+G0130,"Single energy x-ray absorptiometry (sexa) bone density study, one or more sites; appendicular skeleton (peripheral) (e.g., radius, wrist, heel)",39.75
+G0138,"Intravenous infusion of cipaglucosidase alfa-atga, including provider/supplier acquisition and clinical supervision of oral administration of miglustat in preparation of receipt of cipaglucosidase alfa-atga",196.39
+G0141,"Screening cytopathology smears, cervical or vaginal, performed by automated system, with manual rescreening, requiring interpretation by physician",24.05
+G0168,Wound closure utilizing tissue adhesive(s) only,105.54
+G0237,"Therapeutic procedures to increase strength or endurance of respiratory muscles, face to face, one on one, each 15 minutes (includes monitoring)",12.69
+G0238,"Therapeutic procedures to improve respiratory function, other than described by g0237, one on one, face to face, per 15 minutes (includes monitoring)",11.36
+G0239,"Therapeutic procedures to improve respiratory function or increase strength or endurance of respiratory muscles, two or more individuals (includes monitoring)",14.36
+G0252,"Pet imaging, full and partial-ring pet scanners only, for initial diagnosis of breast cancer and/or surgical planning for breast cancer (e.g., initial staging of axillary lymph nodes)",71.48
+G0277,"Hyperbaric oxygen under pressure, full body chamber, per 30 minute interval",193.72
+G0278,"Iliac and/or femoral artery angiography, non-selective, bilateral or ipsilateral to catheter insertion, performed at the same time as cardiac catheterization and/or coronary angiography, includes positioning or placement of the catheter in the distal aorta or ipsilateral femoral or iliac artery, injection of dye, production of permanent images, and radiologic supervision and interpretation (list separately in addition to primary procedure)",11.69
+G0281,"Electrical stimulation, (unattended), to one or more areas, for chronic stage iii and stage iv pressure ulcers, arterial ulcers, diabetic ulcers, and venous stasis ulcers not demonstrating measurable signs of healing after 30 days of conventional care, as part of a therapy plan of care",11.69
+G0283,"Electrical stimulation (unattended), to one or more areas for indication(s) other than wound care, as part of a therapy plan of care",12.69
+G0288,"Reconstruction, computed tomographic angiography of aorta for surgical planning for vascular surgery",46.09
+G0296,Counseling visit to discuss need for lung cancer screening using low dose ct scan (ldct) (service is for eligibility determination and shared decision making),28.72
+G0323,"Care management services for behavioral health conditions, at least 20 minutes of clinical psychologist, clinical social worker, mental health counselor, or marriage and family therapist time, per calendar month. (these services include the following required elements: initial assessment or follow-up monitoring, including the use of applicable validated rating scales; behavioral health care planning in relation to behavioral/psychiatric health problems, including revision for patients who are not progressing or whose status changes; facilitating and coordinating treatment such as psychotherapy, coordination with and/or referral to physicians and practitioners who are authorized by medicare to prescribe medications and furnish e/m services, counseling and/or psychiatric consultation; and continuity of care with a designated member of the care team)",57.78
+G0403,"Electrocardiogram, routine ecg with 12 leads; performed as a screening for the initial preventive physical examination with interpretation and report",15.36
+G0404,"Electrocardiogram, routine ecg with 12 leads; tracing only, without interpretation and report, performed as a screening for the initial preventive physical examination",7.01
+G0405,"Electrocardiogram, routine ecg with 12 leads; interpretation and report only, performed as a screening for the initial preventive physical examination",8.35
+G0416,"Surgical pathology, gross and microscopic examinations, for prostate needle biopsy, any method",356.71
+G0422,"Intensive cardiac rehabilitation; with or without continuous ecg monitoring with exercise, per session",131.60
+G0423,"Intensive cardiac rehabilitation; with or without continuous ecg monitoring; without exercise, per session",131.60
+G0429,"Dermal filler injection(s) for the treatment of facial lipodystrophy syndrome (lds) (e.g., as a result of highly active antiretroviral therapy)",99.53
+G0442,"Annual alcohol misuse screening, 5 to 15 minutes",18.70
+G0443,"Brief face-to-face behavioral counseling for alcohol misuse, 15 minutes",34.40
+G0444,"Annual depression screening, 5 to 15 minutes",18.70
+G0445,"High intensity behavioral counseling to prevent sexually transmitted infection; face-to-face, individual, includes: education, skills training and guidance on how to change sexual behavior; performed semi-annually, 30 minutes",34.40
+G0446,"Annual, face-to-face intensive behavioral therapy for cardiovascular disease, individual, 15 minutes",34.07
+G0447,"Face-to-face behavioral counseling for obesity, 15 minutes",34.07
+G0452,Molecular pathology procedure; physician interpretation and report,46.76
+G0465,"Autologous platelet rich plasma (prp) or other blood-derived product for diabetic chronic wounds/ulcers, using an fda-cleared device for this indication, (includes as applicable administration, dressings, phlebotomy, centrifugation or mixing, and all other preparatory procedures, per treatment)",1063.46
+G0473,"Face-to-face behavioral counseling for obesity, group (2-10), 30 minutes",12.69
+G0500,"Moderate sedation services provided by the same physician or other qualified health care professional performing a gastrointestinal endoscopic service that sedation supports, requiring the presence of an independent trained observer to assist in the monitoring of the patient's level of consciousness and physiological status; initial 15 minutes of intra-service time; patient age 5 years or older (additional time may be reported with 99153, as appropriate)",66.47
+G0538,Atherosclerotic cardiovascular disease (ascvd) risk management services; clinical staff time; per calendar month,17.03
+G0570,"Care management services for behavioral health conditions, directed by a physician or other qualified health care professional, per calendar month, with the following required elements: initial assessment or follow-up monitoring, including the use of applicable validated rating scales, behavioral health care planning in relation to behavioral/psychiatric health problems, including revision for patients who are not progressing or whose status changes, facilitating and coordinating treatment such as psychotherapy, pharmacotherapy, counseling and/or psychiatric consultation, and continuity of care with a designated member of the care team (list separately in addition to advanced primary care management code)",57.78
+G9157,"Transesophageal doppler measurement of cardiac output (including probe placement, image acquisition, and interpretation per course of treatment) for monitoring purposes",88.51
+J0121,"Injection, omadacycline, 1 mg",4.19
+J0122,"Injection, eravacycline, 1 mg",1.38
+J0129,"Injection, abatacept, 10 mg (code may be used for medicare when drug administered under the direct supervision of a physician, not for use when drug is self administered)",45.86
+J0131,"Injection, acetaminophen, not otherwise specified,10 mg",0.05
+J0132,"Injection, acetylcysteine, 100 mg",0.39
+J0133,"Injection, acyclovir, 5 mg",0.04
+J0134,"Injection, acetaminophen (fresenius kabi), not therapeutically equivalent to j0131, 10 mg",0.05
+J0136,"Injection, acetaminophen (b braun), not therapeutically equivalent to j0131, 10 mg",0.05
+J0137,"Injection, acetaminophen (hikma), not therapeutically equivalent to j0131, 10 mg",0.05
+J0138,"Injection, acetaminophen 10 mg and ibuprofen 3 mg",0.09
+J0153,"Injection, adenosine, 1 mg (not to be used to report any adenosine phosphate compounds)",0.39
+J0162,"Injection, epinephrine (fresenius), not therapeutically equivalent to j0165, 0.1 mg",0.36
+J0163,"Injection, epinephrine in sodium chloride (endo), 0.1 mg",0.61
+J0164,"Injection, epinephrine in sodium chloride (baxter), 0.1 mg",0.91
+J0165,"Injection, epinephrine, not otherwise specified, 0.1 mg",0.23
+J0166,"Injection, epinephrine (bpi), not therapeutically equivalent to j0165, 0.1 mg",0.67
+J0167,"Injection, epinephrine (hospira), not therapeutically equivalent to j0165, 0.1 mg",1.42
+J0168,"Injection, epinephrine (international medication systems), not therapeutically equivalent to j0165, 0.1 mg",2.56
+J0169,"Injection, epinephrine (adrenalin), not therapeutically equivalent to j0165, 0.1 mg",0.78
+J0174,"Lecanemab-irmb, for intravenous injection, 1 mg",1.34
+J0175,"Injection, donanemab-azbt, 2 mg",4.17
+J0177,"Injection, aflibercept hd, 1 mg",298.68
+J0178,"Injection, aflibercept, 1 mg",743.61
+J0179,"Injection, brolucizumab-dbll, 1 mg",359.71
+J0180,"Injection, agalsidase beta, 1 mg",232.72
+J0185,"Injection, aprepitant, 1 mg",1.59
+J0202,"Injection, alemtuzumab, 1 mg",2544.94
+J0206,"Injection, allopurinol sodium, 1 mg",4.07
+J0217,"Injection, velmanase alfa-tycv, 1 mg",479.19
+J0218,"Injection, olipudase alfa-rpcp, 1 mg",404.95
+J0219,"Injection, avalglucosidase alfa-ngpt, 4 mg",83.95
+J0221,"Injection, alglucosidase alfa, (lumizyme), 10 mg",211.13
+J0222,"Injection, patisiran, 0.1 mg",101.03
+J0223,"Injection, givosiran, 0.5 mg",120.92
+J0224,"Injection, lumasiran, 0.5 mg",336.97
+J0225,"Injection, vutrisiran, 1 mg",5012.60
+J0248,"Injection, remdesivir, 1 mg",7.51
+J0256,"Injection, alpha 1 proteinase inhibitor (human), not otherwise specified, 10 mg",5.13
+J0257,"Injection, alpha 1 proteinase inhibitor (human), (glassia), 10 mg",5.58
+J0278,"Injection, amikacin sulfate, 100 mg",0.61
+J0280,"Injection, aminophyllin, up to 250 mg",11.16
+J0281,"Injection, aminocaproic acid, 1 gram",1.87
+J0282,"Injection, amiodarone hydrochloride, 30 mg",0.40
+J0283,"Injection, amiodarone hydrochloride (nexterone), 30 mg",2.36
+J0285,"Injection, amphotericin b, 50 mg",41.92
+J0289,"Injection, amphotericin b liposome, 10 mg",19.85
+J0290,"Injection, ampicillin sodium, 500 mg",0.61
+J0291,"Injection, plazomicin, 5 mg",3.52
+J0295,"Injection, ampicillin sodium/sulbactam sodium, per 1.5 gm",1.45
+J0348,"Injection, anidulafungin, 1 mg",0.49
+J0349,"Injection, rezafungin, 1 mg",11.00
+J0360,"Injection, hydralazine hcl, up to 20 mg",3.40
+J0401,"Injection, aripiprazole (abilify maintena), 1 mg",7.46
+J0402,"Injection, aripiprazole (abilify asimtufii), 1 mg",6.19
+J0456,"Injection, azithromycin, 500 mg",1.89
+J0457,"Injection, aztreonam, 100 mg",2.27
+J0458,"Injection, aztreonam/avibactam, 7.5 mg/2.5 mg (10 mg)",1.77
+J0461,"Injection, atropine sulfate, 0.01 mg",0.11
+J0462,"Injection, atropine sulfate, not therapeutically equivalent to j0461, 0.01 mg",0.13
+J0463,"Injection, atropine sulfate (fresenius and therapeutically equivalent), 0.01 mg",0.02
+J0475,"Injection, baclofen, 10 mg",186.11
+J0476,"Injection, baclofen, 50 mcg for intrathecal trial",43.84
+J0480,"Injection, basiliximab, 20 mg",4905.05
+J0485,"Injection, belatacept, 1 mg",3.89
+J0490,"Injection, belimumab, 10 mg",58.30
+J0491,"Injection, anifrolumab-fnia, 1 mg",18.51
+J0500,"Injection, dicyclomine hcl, up to 20 mg",8.52
+J0515,"Injection, benztropine mesylate, per 1 mg",13.54
+J0517,"Injection, benralizumab, 1 mg",165.56
+J0558,"Injection, penicillin g benzathine and penicillin g procaine, 100,000 units",19.52
+J0561,"Injection, penicillin g benzathine, 100,000 units",32.59
+J0577,"Injection, buprenorphine extended-release (brixadi), less than or equal to 7 days of therapy",430.58
+J0578,"Injection, buprenorphine extended release (brixadi), greater than 7 days and up to 28 days of therapy",1722.31
+J0582,"Injection, bivalirudin (endo), not therapeutically equivalent to j0583, 1 mg",0.16
+J0583,"Injection, bivalirudin, 1 mg",0.17
+J0584,"Injection, burosumab-twza 1 mg",513.37
+J0585,"Injection, onabotulinumtoxina, 1 unit",6.51
+J0586,"Injection, abobotulinumtoxina, 5 units",8.95
+J0587,"Injection, rimabotulinumtoxinb, 100 units",13.29
+J0588,"Injection, incobotulinumtoxin a, 1 unit",5.29
+J0589,"Injection, daxibotulinumtoxina-lanm, 1 unit",3.07
+J0592,"Injection, buprenorphine hydrochloride, 0.1 mg",4.47
+J0593,"Injection, lanadelumab-flyo, 1 mg (code may be used for medicare when drug administered under direct supervision of a physician, not for use when drug is self-administered)",88.22
+J0594,"injection, busulfan, 1 mg",1.03
+J0595,"Injection, butorphanol tartrate, 1 mg",10.51
+J0596,"Injection, c1 esterase inhibitor (recombinant), ruconest, 10 units",37.83
+J0597,"Injection, c-1 esterase inhibitor (human), berinert, 10 units",79.26
+J0598,"Injection, c-1 esterase inhibitor (human), cinryze, 10 units",66.75
+J0600,"Injection, edetate calcium disodium, up to 1000 mg",6189.49
+J0612,"Injection, calcium gluconate, not otherwise specified, 10 mg",0.03
+J0613,"Injection, calcium gluconate (wg critical care), not therapeutically equivalent to j0612, 10 mg",0.05
+J0614,"Injection, treosulfan, 50 mg",32.33
+J0616,"Injection, metoprolol tartrate, 1 mg",0.16
+J0637,"Injection, caspofungin acetate, 5 mg",2.88
+J0638,"Injection, canakinumab, 1 mg",156.54
+J0640,"Injection, leucovorin calcium, per 50 mg",2.93
+J0641,"Injection, levoleucovorin, not otherwise specified, 0.5 mg",0.05
+J0642,"Injection, levoleucovorin (khapzory), 0.5 mg",1.30
+J0650,"Injection, levothyroxine sodium, not otherwise specified, 10 mcg",5.10
+J0651,"Injection, levothyroxine sodium (fresenius kabi), not therapeutically equivalent to j0650, 10 mcg",6.84
+J0652,"Injection, levothyroxine sodium (hikma), not therapeutically equivalent to j0650, 10 mcg",6.32
+J0665,"Injection, bupivicaine, not otherwise specified, 0.5 mg",0.01
+J0666,"Injection, bupivacaine liposome, 1 mg",1.45
+J0670,"Injection, mepivacaine hydrochloride, per 10 ml",4.15
+J0681,"Injection, ceftobiprole medocaril sodium, 3 mg",1.10
+J0687,"Injection, cefazolin sodium (wg critical care), not therapeutically equivalent to j0690, 500 mg",0.63
+J0688,"Injection, cefazolin sodium (hikma), not therapeutically equivalent to j0690, 500 mg",0.85
+J0689,"Injection, cefazolin sodium (baxter), not therapeutically equivalent to j0690, 500 mg",1.29
+J0690,"Injection, cefazolin sodium, 500 mg",0.80
+J0692,"Injection, cefepime hydrochloride, 500 mg",1.30
+J0694,"Injection, cefoxitin sodium, 1 gm",4.29
+J0695,"Injection, ceftolozane 50 mg and tazobactam 25 mg",10.04
+J0696,"Injection, ceftriaxone sodium, per 250 mg",0.40
+J0697,"Injection, sterile cefuroxime sodium, per 750 mg",2.04
+J0699,"Injection, cefiderocol, 10 mg",2.55
+J0701,"Injection, cefepime hydrochloride (baxter), not therapeutically equivalent to maxipime, 500 mg",6.03
+J0702,"Injection, betamethasone acetate 3 mg and betamethasone sodium phosphate 3 mg",7.13
+J0703,"Injection, cefepime hydrochloride (b braun), not therapeutically equivalent to maxipime, 500 mg",4.48
+J0712,"Injection, ceftaroline fosamil, 10 mg",4.39
+J0713,"Injection, ceftazidime, per 500 mg",1.44
+J0714,"Injection, ceftazidime and avibactam, 0.5 g/0.125 g",109.77
+J0717,"Injection, certolizumab pegol, 1 mg (code may be used for medicare when drug administered under the direct supervision of a physician, not for use when drug is self administered)",3.44
+J0725,"Injection, chorionic gonadotropin, per 1,000 usp units",15.07
+J0735,"Injection, clonidine hydrochloride, 1 mg",15.08
+J0736,"Injection, clindamycin phosphate, 300 mg",1.97
+J0737,"Injection, clindamycin phosphate (baxter), not therapeutically equivalent to j0736, 300 mg",2.19
+J0738,"Injection, lenacapavir, 1 mg, fda approved prescription, only for use as hiv pre-exposure prophylaxis (not for use as treatment for hiv)",16.08
+J0739,"Injection, cabotegravir, 1mg, fda approved prescription, only for use as hiv pre-exposure prophylaxis (not for use as treatment for hiv)",7.29
+J0740,"Injection, cidofovir, 375 mg",535.74
+J0741,"Injection, cabotegravir and rilpivirine, 2mg/3mg",24.67
+J0742,"Injection, imipenem 4 mg, cilastatin 4 mg and relebactam 2 mg",2.69
+J0743,"Injection, cilastatin sodium; imipenem, per 250 mg",6.52
+J0744,"Injection, ciprofloxacin for intravenous infusion, 200 mg",1.72
+J0750,"Emtricitabine 200mg and tenofovir disoproxil fumarate 300mg, oral, fda approved prescription, only for use as hiv pre-exposure prophylaxis (not for use as treatment of hiv)",0.45
+J0751,"Emtricitabine 200mg and tenofovir alafenamide 25mg, oral, fda approved prescription, only for use as hiv pre-exposure prophylaxis (not for use as treatment of hiv)",71.43
+J0752,"Oral, lenacapavir, 300 mg, fda approved prescription, only for use as hiv pre-exposure prophylaxis (not for use as treatment for hiv)",620.91
+J0759,"Injection, clevidipine butyrate, 1 mg",2.84
+J0770,"Injection, colistimethate sodium, up to 150 mg",14.49
+J0775,"Injection, collagenase, clostridium histolyticum, 0.01 mg",78.30
+J0780,"Injection, prochlorperazine, up to 10 mg",2.76
+J0791,"Injection, crizanlizumab-tmca, 5 mg",129.94
+J0801,"Injection, corticotropin (acthar gel), up to 40 units",4133.45
+J0802,"Injection, corticotropin (ani), up to 40 units",3674.68
+J0834,"Injection, cosyntropin, 0.25 mg",18.38
+J0840,"Injection, crotalidae polyvalent immune fab (ovine), up to 1 gram",1906.91
+J0850,"Injection, cytomegalovirus immune globulin intravenous (human), per vial",1858.82
+J0870,"Injection, imetelstat, 1 mg",59.53
+J0872,"Injection, daptomycin (xellia), unrefrigerated, not therapeutically equivalent to j0878 or j0873, 1 mg",0.04
+J0873,"Injection, daptomycin (xellia), not therapeutically equivalent to j0878 or j0872, 1 mg",0.05
+J0874,"Injection, daptomycin (baxter), not therapeutically equivalent to j0878, 1 mg",0.06
+J0875,"Injection, dalbavancin, 5 mg",11.29
+J0877,"Injection, daptomycin (hospira), not therapeutically equivalent to j0878, 1 mg",0.06
+J0878,"Injection, daptomycin, 1 mg",0.03
+J0881,"Injection, darbepoetin alfa, 1 microgram (non-esrd use)",2.92
+J0882,"Injection, darbepoetin alfa, 1 microgram (for esrd on dialysis)",2.92
+J0883,"Injection, argatroban, 1 mg (for non-esrd use)",0.86
+J0884,"Injection, argatroban, 1 mg (for esrd on dialysis)",0.86
+J0885,"Injection, epoetin alfa, (for non-esrd use), 1000 units",6.88
+J0887,"Injection, epoetin beta, 1 microgram, (for esrd on dialysis)",1.09
+J0888,"Injection, epoetin beta, 1 microgram, (for non esrd use)",1.09
+J0894,"Injection, decitabine, 1 mg",1.06
+J0895,"Injection, deferoxamine mesylate, 500 mg",10.02
+J0896,"Injection, luspatercept-aamt, 0.25 mg",43.51
+J0897,"Injection, denosumab, 1 mg",30.10
+J0898,"Injection, argatroban (auromedics), not therapeutically equivalent to j0883, 1 mg (for non-esrd use)",1.21
+J0899,"Injection, argatroban (auromedics), not therapeutically equivalent to j0884, 1 mg (for esrd on dialysis)",1.21
+J0901,"Vadadustat, oral, 1 mg (for esrd on dialysis)",0.14
+J1000,"Injection, depo-estradiol cypionate, up to 5 mg",53.81
+J1010,"Injection, methylprednisolone acetate, 1 mg",0.12
+J1071,"Injection, testosterone cypionate, 1 mg",0.03
+J1072,"Injection, testosterone cypionate (azmiro), 1 mg",1.30
+J1100,"Injection, dexamethasone sodium phosphate, 1 mg",0.09
+J1110,"Injection, dihydroergotamine mesylate, per 1 mg",54.98
+J1120,"Injection, acetazolamide sodium, up to 500 mg",28.13
+J1160,"Injection, digoxin, up to 0.5 mg",3.91
+J1162,"Injection, digoxin immune fab (ovine), per vial",5383.32
+J1163,"Injection, diltiazem hydrochloride, 0.5 mg",0.03
+J1164,"Injection, diltiazem hydrochloride in 0.72% sodium chloride, 0.5 mg",0.18
+J1165,"Injection, phenytoin sodium, per 50 mg",0.55
+J1171,"Injection, hydromorphone, 0.1 mg",0.14
+J1190,"Injection, dexrazoxane hydrochloride, per 250 mg",41.44
+J1200,"Injection, diphenhydramine hcl, up to 50 mg",0.75
+J1201,"Injection, cetirizine hydrochloride, 0.5 mg",17.16
+J1203,"Injection, cipaglucosidase alfa-atga, 5 mg",96.30
+J1205,"Injection, chlorothiazide sodium, per 500 mg",77.77
+J1212,"Injection, dmso, dimethyl sulfoxide, 50%, 50 ml",748.88
+J1230,"Injection, methadone hcl, up to 10 mg",12.71
+J1240,"Injection, dimenhydrinate, up to 50 mg",8.64
+J1245,"Injection, dipyridamole, per 10 mg",8.41
+J1250,"Injection, dobutamine hydrochloride, per 250 mg",7.69
+J1265,"Injection, dopamine hcl, 40 mg",1.01
+J1270,"Injection, doxercalciferol, 1 mcg",0.33
+J1271,"Injection, doxycycline hyclate, 1 mg",0.09
+J1290,"Injection, ecallantide, 1 mg",595.94
+J1299,"Injection, eculizumab, 2 mg",44.20
+J1301,"Injection, edaravone, 1 mg",6.46
+J1302,"Injection, sutimlimab-jome, 10 mg",19.64
+J1303,"Injection, ravulizumab-cwvz, 10 mg",226.92
+J1304,"Injection, tofersen, 1 mg",164.82
+J1305,"Injection, evinacumab-dgnb, 5mg",197.63
+J1306,"Injection, inclisiran, 1 mg",12.91
+J1307,"Injection, crovalimab-akkz, 10 mg",551.51
+J1308,"Injection, famotidine, 0.25 mg",0.01
+J1322,"Injection, elosulfase alfa, 1 mg",319.52
+J1323,"Injection, elranatamab-bcmm, 1 mg",192.48
+J1325,"Injection, epoprostenol, 0.5 mg",16.92
+J1326,"Injection, zolbetuximab-clzb, 2 mg",33.92
+J1335,"Injection, ertapenem sodium, 500 mg",6.75
+J1364,"Injection, erythromycin lactobionate, per 500 mg",172.48
+J1380,"Injection, estradiol valerate, up to 10 mg",7.70
+J1410,"Injection, estrogen conjugated, per 25 mg",401.50
+J1430,"Injection, ethanolamine oleate, 100 mg",547.27
+J1434,"Injection, fosaprepitant (focinvez), 1 mg",2.46
+J1437,"Injection, ferric derisomaltose, 10 mg",21.08
+J1439,"Injection, ferric carboxymaltose, 1 mg",1.13
+J1442,"Injection, filgrastim (g-csf), excludes biosimilars, 1 microgram",1.01
+J1447,"Injection, tbo-filgrastim, 1 microgram",0.24
+J1448,"Injection, trilaciclib, 1mg",5.46
+J1449,"Injection, eflapegrastim-xnst, 0.1 mg",38.56
+J1450,"Injection fluconazole, 200 mg",6.11
+J1453,"Injection, fosaprepitant, 1 mg",0.12
+J1454,"Injection, fosnetupitant 235 mg and palonosetron 0.25 mg",503.85
+J1455,"Injection, foscarnet sodium, per 1000 mg",8.36
+J1456,"Injection, fosaprepitant (teva), not therapeutically equivalent to j1453, 1 mg",0.04
+J1458,"Injection, galsulfase, 1 mg",525.97
+J1459,"Injection, immune globulin (privigen), intravenous, non-lyophilized (e.g., liquid), 500 mg",51.22
+J1460,"Injection, gamma globulin, intramuscular, 1 cc",48.87
+J1551,"Injection, immune globulin (cutaquig), 100 mg",14.03
+J1552,"Injection, immune globulin (alyglo), 500 mg",121.54
+J1553,"Injection, immune globulin (yimmugo), 100 mg",24.15
+J1554,"Injection, immune globulin (asceniv), 500 mg",509.14
+J1555,"Injection, immune globulin (cuvitru), 100 mg",18.15
+J1556,"Injection, immune globulin (bivigam), 500 mg",81.24
+J1557,"Injection, immune globulin, (gammaplex), intravenous, non-lyophilized (e.g., liquid), 500 mg",66.27
+J1558,"Injection, immune globulin (xembify), 100 mg",15.24
+J1559,"Injection, immune globulin (hizentra), 100 mg",14.88
+J1560,"Injection, gamma globulin, intramuscular, over 10 cc",162.52
+J1561,"Injection, immune globulin, (gamunex-c/gammaked), non-lyophilized (e.g., liquid), 500 mg",49.01
+J1566,"Injection, immune globulin, intravenous, lyophilized (e.g., powder), not otherwise specified, 500 mg",80.96
+J1568,"Injection, immune globulin, (octagam), intravenous, non-lyophilized (e.g., liquid), 500 mg",47.06
+J1569,"Injection, immune globulin, (gammagard liquid/gammagard liquid erc), 500 mg",49.30
+J1570,"Injection, ganciclovir sodium, 500 mg",31.46
+J1571,"Injection, hepatitis b immune globulin (hepagam b), intramuscular, 0.5 ml",65.61
+J1573,"Injection, hepatitis b immune globulin (hepagam b), intravenous, 0.5 ml",65.61
+J1575,"Injection, immune globulin/hyaluronidase, (hyqvia), 100 mg immuneglobulin",18.35
+J1576,"Injection, immune globulin (panzyga), intravenous, non-lyophilized (e.g., liquid), 500 mg",71.35
+J1580,"Injection, garamycin, gentamicin, up to 80 mg",1.93
+J1596,"Injection, glycopyrrolate, 0.1 mg",0.37
+J1597,"Injection, glycopyrrolate (glyrx-pf), 0.1 mg",1.32
+J1598,"Injection, glycopyrrolate (fresenius kabi), not therapeutically equivalent to j1596, 0.1 mg",1.34
+J1602,"Injection, golimumab, 1 mg, for intravenous use",11.04
+J1610,"Injection, glucagon hydrochloride, per 1 mg",117.33
+J1611,"Injection, glucagon hydrochloride (fresenius kabi), not therapeutically equivalent to j1610, per 1 mg",129.28
+J1612,"Injection, glucagon (gvoke), 0.01 mg",1.80
+J1626,"Injection, granisetron hydrochloride, 100 mcg",0.20
+J1627,"Injection, granisetron, extended-release, 0.1 mg",3.22
+J1628,"Injection, guselkumab, 1 mg",66.92
+J1630,"Injection, haloperidol, up to 5 mg",0.75
+J1631,"Injection, haloperidol decanoate, per 50 mg",5.29
+J1640,"Injection, hemin, 1 mg",35.82
+J1642,"Injection, heparin sodium, (heparin lock flush), per 10 units",0.02
+J1643,"Injection, heparin sodium (pfizer), not therapeutically equivalent to j1644, per 1000 units",1.71
+J1644,"Injection, heparin sodium, per 1000 units",0.20
+J1645,"Injection, dalteparin sodium, per 2500 iu",48.41
+J1650,"Injection, enoxaparin sodium, 10 mg",0.54
+J1652,"Injection, fondaparinux sodium, 0.5 mg",0.93
+J1670,"Injection, tetanus immune globulin, human, up to 250 units",595.02
+J1720,"Injection, hydrocortisone sodium succinate, up to 100 mg",23.06
+J1740,"Injection, ibandronate sodium, 1 mg",45.15
+J1741,"Injection, ibuprofen, 100 mg",3.25
+J1743,"Injection, idursulfase, 1 mg",570.04
+J1745,"Injection, infliximab, excludes biosimilar, 10 mg",31.48
+J1746,"Injection, ibalizumab-uiyk, 10 mg",79.51
+J1747,"Injection, spesolimab-sbzo, 1 mg",65.73
+J1749,"Injection, iloprost, 0.1 mcg",5.65
+J1750,"Injection, iron dextran, 50 mg",18.99
+J1756,"Injection, iron sucrose, 1 mg",0.23
+J1786,"Injection, imiglucerase, 10 units",43.33
+J1790,"Injection, droperidol, up to 5 mg",8.12
+J1805,"Injection, esmolol hydrochloride, 10 mg",0.23
+J1806,"Injection, esmolol hydrochloride (wg critical care), not therapeutically equivalent to j1805, 10 mg",0.20
+J1808,"Injection, folic acid, 0.1 mg",0.05
+J1809,"Injection, fosdenopterin, 0.1 mg",17.74
+J1823,"Injection, inebilizumab-cdon, 1 mg",510.65
+J1836,"Injection, metronidazole, 10 mg",0.03
+J1837,"Injection, posaconazole, 1 mg",0.34
+J1885,"Injection, ketorolac tromethamine, per 15 mg",0.29
+J1920,"Injection, labetalol hydrochloride, 5 mg",0.22
+J1921,"Injection, labetalol hydrochloride (hikma), not therapeutically equivalent to j1920, 5 mg",0.91
+J1930,"Injection, lanreotide, 1 mg",37.43
+J1931,"Injection, laronidase, 0.1 mg",41.49
+J1932,"Injection, lanreotide, (cipla), 1 mg",20.33
+J1938,"Injection, furosemide, 1 mg",0.02
+J1939,"Injection, bumetanide, 0.5 mg",0.50
+J1943,"Injection, aripiprazole lauroxil, (aristada initio), 1 mg",3.46
+J1944,"Injection, aripiprazole lauroxil, (aristada), 1 mg",3.56
+J1950,"Injection, leuprolide acetate (for depot suspension), per 3.75 mg",1841.26
+J1951,"Injection, leuprolide acetate for depot suspension (fensolvi), 0.25 mg",145.31
+J1953,"Injection, levetiracetam, 10 mg",0.03
+J1954,"Injection, leuprolide acetate for depot suspension (lutrate depot), 7.5 mg",687.29
+J1955,"Injection, levocarnitine, per 1 gm",22.61
+J1956,"Injection, levofloxacin, 250 mg",1.91
+J1961,"Injection, lenacapavir (only for use as hiv treatment), 1 mg",22.94
+J2010,"Injection, lincomycin hcl, up to 300 mg",4.23
+J2020,"Injection, linezolid, 200 mg",2.27
+J2021,"Injection, linezolid (hospira), not therapeutically equivalent to j2020, 200 mg",34.18
+J2060,"Injection, lorazepam, 2 mg",2.30
+J2151,"Injection, mannitol, 250 mg",0.07
+J2175,"Injection, meperidine hydrochloride, per 100 mg",6.34
+J2182,"Injection, mepolizumab, 1 mg",32.28
+J2183,"Injection, meropenem (wg critical care), not therapeutically equivalent to j2185, 100 mg",1.41
+J2184,"Injection, meropenem (b. braun), not therapeutically equivalent to j2185, 100 mg",1.87
+J2185,"Injection, meropenem, 100 mg",0.33
+J2210,"Injection, methylergonovine maleate, up to 0.2 mg",21.55
+J2246,"Injection, micafungin in sodium (baxter), not therapeutically equivalent to j2248, 1 mg",0.45
+J2247,"Injection, micafungin sodium (par pharm) not thereapeutically equivalent to j2248, 1 mg",0.22
+J2248,"Injection, micafungin sodium, 1 mg",0.18
+J2250,"Injection, midazolam hydrochloride, per 1 mg",0.14
+J2251,"Injection, midazolam in 0.9% sodium chloride, intravenous, not therapeutically equivalent to j2250, 1 mg",0.12
+J2260,"Injection, milrinone lactate, 5 mg",1.10
+J2267,"Injection, mirikizumab-mrkz, 1 mg",32.66
+J2270,"Injection, morphine sulfate, up to 10 mg",8.09
+J2272,"Injection, morphine sulfate (fresenius kabi), not therapeutically equivalent to j2270, up to 10 mg",8.46
+J2274,"Injection, morphine sulfate, preservative-free for epidural or intrathecal use, 10 mg",18.91
+J2277,"Injection, motixafortide, 0.25 mg",26.48
+J2278,"Injection, ziconotide, 1 microgram",10.79
+J2280,"Injection, moxifloxacin, 100 mg",8.74
+J2281,"Injection, moxifloxacin (fresenius kabi), not therapeutically equivalent to j2280, 100 mg",6.64
+J2290,"Injection, nafcillin sodium, 20 mg",0.05
+J2291,"Injection, nafcillin sodium (baxter), 20 mg",0.15
+J2300,"Injection, nalbuphine hydrochloride, per 10 mg",4.29
+J2305,"Injection, nitroglycerin, 5 mg",1.56
+J2312,"Injection, naloxone hydrochloride, not otherwise specified, 0.01 mg",0.07
+J2315,"Injection, naltrexone, depot form, 1 mg",4.53
+J2323,"Injection, natalizumab, 1 mg",24.41
+J2327,"Injection, risankizumab-rzaa, intravenous, 1 mg",14.53
+J2329,"Injection, ublituximab-xiiy, 1mg",72.24
+J2350,"Injection, ocrelizumab, 1 mg",60.97
+J2351,"Injection, ocrelizumab, 1 mg and hyaluronidase-ocsq",48.06
+J2353,"Injection, octreotide, depot form for intramuscular injection, 1 mg",208.10
+J2354,"Injection, octreotide, non-depot form for subcutaneous or intravenous injection, 25 mcg",0.60
+J2356,"Injection, tezepelumab-ekko, 1 mg",17.92
+J2357,"Injection, omalizumab, 5 mg",46.59
+J2358,"Injection, olanzapine, long-acting, 1 mg",3.20
+J2359,"Injection, olanzapine, 0.5 mg",0.69
+J2360,"Injection, orphenadrine citrate, up to 60 mg",7.78
+J2372,"Injection, phenylephrine hydrochloride (biorphen), 20 micrograms",0.16
+J2373,"Injection, phenylephrine hydrochloride (immphentiv), 20 micrograms",0.12
+J2401,"Injection, chloroprocaine hydrochloride, per 1 mg",0.04
+J2404,"Injection, nicardipine, 0.1 mg",0.07
+J2405,"Injection, ondansetron hydrochloride, per 1 mg",0.09
+J2406,"Injection, oritavancin (kimyrsa), 10 mg",47.41
+J2407,"Injection, oritavancin (orbactiv), 10 mg",29.73
+J2425,"Injection, palifermin, 50 micrograms",38.69
+J2426,"Injection, paliperidone palmitate extended release (invega sustenna), 1 mg",15.43
+J2427,"Injection, paliperidone palmitate extended release (invega hafyera, or invega trinza), 1 mg",13.26
+J2428,"Injection, paliperidone palmitate extended release (erzofri), 1 mg",15.87
+J2430,"Injection, pamidronate disodium, per 30 mg",12.03
+J2468,"Injection, palonosetron hydrochloride (posfrea), 25 micrograms",55.23
+J2469,"Injection, palonosetron hcl, 25 mcg",0.57
+J2501,"Injection, paricalcitol, 1 mcg",0.90
+J2502,"Injection, pasireotide long acting, 1 mg",616.71
+J2506,"Injection, pegfilgrastim, excludes biosimilar, 0.5 mg",143.23
+J2507,"Injection, pegloticase, 1 mg",3929.34
+J2508,"Injection, pegunigalsidase alfa-iwxj, 1 mg",225.67
+J2516,"Injection, pentamidine isethionate, 1 mg",0.16
+J2540,"Injection, penicillin g potassium, up to 600,000 units",0.64
+J2543,"Injection, piperacillin sodium/tazobactam sodium, 1 gram/0.125 grams (1.125 grams)",1.22
+J2550,"Injection, promethazine hcl, up to 50 mg",3.64
+J2560,"Injection, phenobarbital sodium, up to 120 mg",24.77
+J2562,"Injection, plerixafor, 1 mg",28.49
+J2596,"Injection, vasopressin (long grove), not therapeutically equivalent to j2598, 1 unit",1.13
+J2597,"Injection, desmopressin acetate, per 1 mcg",3.56
+J2598,"Injection, vasopressin, 1 unit",0.49
+J2599,"Injection, vasopressin (american regent), not therapeutically equivalent to j2598, 1 unit",0.83
+J2601,"Injection, vasopressin (baxter), 1 unit",1.75
+J2675,"Injection, progesterone, per 50 mg",0.56
+J2679,"Injection, fluphenazine hcl, 1.25 mg",7.27
+J2680,"Injection, fluphenazine decanoate, up to 25 mg",5.78
+J2690,"Injection, procainamide hcl, up to 1 gm",295.36
+J2700,"Injection, oxacillin sodium, up to 250 mg",0.76
+J2704,"Injection, propofol, 10 mg",0.09
+J2720,"Injection, protamine sulfate, per 10 mg",1.77
+J2724,"Injection, protein c concentrate, intravenous, human, 10 iu",15.07
+J2760,"Injection, phentolamine mesylate, up to 5 mg",288.63
+J2765,"Injection, metoclopramide hcl, up to 10 mg",1.00
+J2777,"Injection, faricimab-svoa, 0.1 mg",32.38
+J2778,"Injection, ranibizumab, 0.1 mg",51.09
+J2779,"Injection, ranibizumab, via intravitreal implant (susvimo), 0.1 mg",74.80
+J2781,"Injection, pegcetacoplan, intravitreal, 1 mg",148.94
+J2782,"Injection, avacincaptad pegol, 0.1 mg",103.20
+J2783,"Injection, rasburicase, 0.5 mg",387.45
+J2785,"Injection, regadenoson, 0.1 mg",2.79
+J2786,"Injection, reslizumab, 1 mg",11.73
+J2788,"Injection, rho d immune globulin, human, minidose, 50 micrograms (250 i.u.)",25.54
+J2790,"Injection, rho d immune globulin, human, full dose, 300 micrograms (1500 i.u.)",85.13
+J2791,"Injection, rho(d) immune globulin (human), (rhophylac), intramuscular or intravenous, 100 iu",4.88
+J2792,"Injection, rho d immune globulin, intravenous, human, solvent detergent, 100 iu",35.79
+J2794,"Injection, risperidone (risperdal consta), 0.5 mg",11.11
+J2795,"Injection, ropivacaine hydrochloride, 1 mg",0.04
+J2798,"Injection, risperidone, (perseris), 0.5 mg",12.20
+J2799,"Injection, risperidone (uzedy), 1 mg",26.18
+J2800,"Injection, methocarbamol, up to 10 ml",4.51
+J2802,"Injection, romiplostim, 1 microgram",11.62
+J2804,"Injection, rifampin, 1 mg",0.17
+J2805,"Injection, sincalide, 5 micrograms",110.46
+J2820,"Injection, sargramostim (gm-csf), 50 mcg",62.47
+J2860,"Injection, siltuximab, 10 mg",174.07
+J2865,"Injection, sulfamethoxazole 5 mg and trimethoprim 1 mg",0.04
+J2916,"Injection, sodium ferric gluconate complex in sucrose injection, 12.5 mg",2.20
+J2919,"Injection, methylprednisolone sodium succinate, 5 mg",0.22
+J2997,"Injection, alteplase recombinant, 1 mg",98.59
+J3000,"Injection, streptomycin, up to 1 gm",26.88
+J3010,"Injection, fentanyl citrate, 0.1 mg",1.39
+J3032,"Injection, eptinezumab-jjmr, 1 mg",21.10
+J3055,"Injection, talquetamab-tgvs, 0.25 mg",76.72
+J3060,"Injection, taliglucerase alfa, 10 units",42.68
+J3090,"Injection, tedizolid phosphate, 1 mg",2.08
+J3095,"Injection, telavancin, 10 mg",7.48
+J3101,"Injection, tenecteplase, 1 mg",217.42
+J3105,"Injection, terbutaline sulfate, up to 1 mg",2.82
+J3111,"Injection, romosozumab-aqqg, 1 mg",12.73
+J3121,"Injection, testosterone enanthate, 1 mg",0.05
+J3145,"Injection, testosterone undecanoate, 1 mg",2.15
+J3230,"Injection, chlorpromazine hcl, up to 50 mg",18.14
+J3240,"Injection, thyrotropin alpha, 0.9 mg, provided in 1.1 mg vial",2158.66
+J3241,"Injection, teprotumumab-trbw, 10 mg",379.90
+J3243,"Injection, tigecycline, 1 mg",0.52
+J3245,"Injection, tildrakizumab, 1 mg",124.27
+J3246,"Injection, tirofiban hcl, 0.25 mg",2.92
+J3247,"Injection, secukinumab, intravenous, 1 mg",18.23
+J3250,"Injection, trimethobenzamide hcl, up to 200 mg",62.94
+J3260,"Injection, tobramycin sulfate, up to 80 mg",2.19
+J3262,"Injection, tocilizumab, 1 mg",5.41
+J3263,"Injection, toripalimab-tpzi, 1 mg",40.89
+J3285,"Injection, treprostinil, 1 mg",54.74
+J3299,"Injection, triamcinolone acetonide (xipere), 1 mg",47.77
+J3300,"Injection, triamcinolone acetonide (triesence), preservative free, 1 mg",19.19
+J3301,"Injection, triamcinolone acetonide, not otherwise specified, 10 mg",1.00
+J3304,"Injection, triamcinolone acetonide, preservative-free, extended-release, microsphere formulation, 1 mg",19.28
+J3315,"Injection, triptorelin pamoate, 3.75 mg",466.37
+J3316,"Injection, triptorelin, extended-release, 3.75 mg",3819.93
+J3358,"Ustekinumab, for intravenous injection, 1 mg",11.36
+J3360,"Injection, diazepam, up to 5 mg",6.85
+J3373,"Injection, vancomycin hydrochloride, 10 mg",0.03
+J3374,"Injection, vancomycin hydrochloride (mylan) not therapeutically equivalent to j3373, 10 mg",0.10
+J3375,"Injection, vancomycin hydrochloride (tyzavan), not therapeutically equivalent to j3373, 10 mg",0.14
+J3376,"Injection, vancomycin hcl (hikma), not therapeutically equivalent to j3373, 10 mg",0.02
+J3379,"Injection, valproate sodium, 5 mg",0.01
+J3380,"Injection, vedolizumab, intravenous, 1 mg",21.62
+J3385,"Injection, velaglucerase alfa, 100 units",392.84
+J3396,"Injection, verteporfin, 0.1 mg",11.37
+J3402,"Injection, remestemcel-l-rknd, per therapeutic dose",203659.76
+J3410,"Injection, hydroxyzine hcl, up to 25 mg",15.21
+J3411,"Injection, thiamine hcl, 100 mg",1.60
+J3415,"Injection, pyridoxine hcl, 100 mg",12.94
+J3420,"Injection, vitamin b-12 cyanocobalamin, up to 1000 mcg",0.68
+J3425,"Injection, hydroxocobalamin, intramuscular, 10 mcg",0.01
+J3430,"Injection, phytonadione (vitamin k), per 1 mg",3.25
+J3465,"Injection, voriconazole, 10 mg",0.56
+J3470,"Injection, hyaluronidase, up to 150 units",31.76
+J3473,"Injection, hyaluronidase, recombinant, 1 usp unit",0.36
+J3475,"Injection, magnesium sulfate, per 500 mg",0.45
+J3480,"Injection, potassium chloride, per 2 meq",0.14
+J3485,"Injection, zidovudine, 10 mg",1.51
+J3486,"Injection, ziprasidone mesylate, 10 mg",5.60
+J3489,"Injection, zoledronic acid, 1 mg",3.36
+J7030,"Infusion, normal saline solution , 1000 cc",2.18
+J7040,"Infusion, normal saline solution, sterile (500 ml = 1 unit)",1.35
+J7050,"Infusion, normal saline solution, 250 cc",0.70
+J7070,"Infusion, d5w, 1000 cc",2.85
+J7120,"Ringers lactate infusion, up to 1000 cc",2.31
+J7170,"Injection, emicizumab-kxwh, 0.5 mg",58.03
+J7171,"Injection, adamts13, recombinant-krhn, 10 iu",36.21
+J7172,"Injection, marstacimab-hncq, 0.5 mg",51.19
+J7173,"Injection, concizumab-mtci, 0.5 mg",86.16
+J7174,"Injection, fitusiran, 0.04 mg",131.20
+J7175,"Injection, factor x, (human), 1 i.u.",9.95
+J7177,"Injection, human fibrinogen concentrate (fibryga), 1 mg",1.23
+J7178,"Injection, human fibrinogen concentrate, not otherwise specified, 1 mg",1.49
+J7179,"Injection, von willebrand factor (recombinant), (vonvendi), 1 i.u. vwf:rco",1.81
+J7180,"Injection, factor xiii (antihemophilic factor, human), 1 i.u.",11.24
+J7181,"Injection, factor xiii a-subunit, (recombinant), per iu",19.11
+J7182,"Injection, factor viii, (antihemophilic factor, recombinant), (novoeight), per iu",1.44
+J7183,"Injection, von willebrand factor complex (human), wilate, 1 i.u. vwf:rco",1.33
+J7185,"Injection, factor viii (antihemophilic factor, recombinant) (xyntha), per i.u.",1.37
+J7186,"Injection, antihemophilic factor viii/von willebrand factor complex (human), per factor viii i.u.",1.27
+J7187,"Injection, von willebrand factor complex (humate-p), per iu vwf:rco",1.54
+J7188,"Injection, factor viii (antihemophilic factor, recombinant), (obizur), per i.u.",3.24
+J7195,"Injection, factor ix (antihemophilic factor, recombinant) per iu, not otherwise specified",1.86
+J7200,"Injection, factor ix, (antihemophilic factor, recombinant), rixubis, per iu",1.72
+J7201,"Injection, factor ix, fc fusion protein, (recombinant), alprolix, 1 i.u.",3.71
+J7202,"Injection, factor ix, albumin fusion protein, (recombinant), idelvion, 1 i.u.",5.51
+J7203,"Injection factor ix, (antihemophilic factor, recombinant), glycopegylated, (rebinyn), 1 iu",4.67
+J7204,"Injection, factor viii, antihemophilic factor (recombinant), (esperoct), glycopegylated-exei, per iu",2.30
+J7205,"Injection, factor viii fc fusion protein (recombinant), per iu",2.58
+J7207,"Injection, factor viii, (antihemophilic factor, recombinant), pegylated, 1 i.u.",2.12
+J7208,"Injection, factor viii, (antihemophilic factor, recombinant), pegylated-aucl, (jivi), 1 i.u.",2.76
+J7209,"Injection, factor viii, (antihemophilic factor, recombinant), (nuwiq), 1 i.u.",1.22
+J7210,"Injection, factor viii, (antihemophilic factor, recombinant), (afstyla), 1 i.u.",1.62
+J7211,"Injection, factor viii, (antihemophilic factor, recombinant), (kovaltry), 1 i.u.",1.60
+J7213,"Injection, coagulation factor ix (recombinant), ixinity, 1 i.u.",1.94
+J7214,"Injection, factor viii/von willebrand factor complex, recombinant (altuviiio), per factor viii i.u.",4.63
+J7311,"Injection, fluocinolone acetonide, intravitreal implant (retisert), 0.01 mg",338.80
+J7312,"Injection, dexamethasone, intravitreal implant, 0.1 mg",203.66
+J7313,"Injection, fluocinolone acetonide, intravitreal implant (iluvien), 0.01 mg",516.41
+J7318,"Hyaluronan or derivative, durolane, for intra-articular injection, 1 mg",6.24
+J7320,"Hyaluronan or derivitive, genvisc 850, for intra-articular injection, 1 mg",3.81
+J7323,"Hyaluronan or derivative, euflexxa, for intra-articular injection, per dose",98.14
+J7324,"Hyaluronan or derivative, orthovisc, for intra-articular injection, per dose",100.33
+J7326,"Hyaluronan or derivative, gel-one, for intra-articular injection, per dose",533.59
+J7327,"Hyaluronan or derivative, monovisc, for intra-articular injection, per dose",565.28
+J7328,"Hyaluronan or derivative, gelsyn-3, for intra-articular injection, 0.1 mg",0.58
+J7329,"Hyaluronan or derivative, trivisc, for intra-articular injection, 1 mg",3.04
+J7331,"Hyaluronan or derivative, synojoynt, for intra-articular injection, 1 mg",3.12
+J7332,"Hyaluronan or derivative, triluron, for intra-articular injection, 1 mg",10.43
+J7351,"Injection, bimatoprost, intracameral implant, 1 microgram",213.76
+J7355,"Injection, travoprost, intracameral implant, 1 microgram",196.75
+J7356,"Injection, foscarbidopa 0.25 mg/foslevodopa 5 mg",0.70
+J7500,"Azathioprine, oral, 50 mg",0.14
+J7502,"Cyclosporine, oral, 100 mg",1.56
+J7503,"Tacrolimus, extended release, (envarsus xr), oral, 0.25 mg",1.86
+J7507,"Tacrolimus, immediate release, oral, 1 mg",0.20
+J7508,"Tacrolimus, extended release, (astagraf xl), oral, 0.1 mg",0.60
+J7509,"Methylprednisolone oral, per 4 mg",0.16
+J7510,"Prednisolone oral, per 5 mg",0.78
+J7514,"Mycophenolate mofetil (myhibbin), oral suspension, 100 mg",2.30
+J7515,"Cyclosporine, oral, 25 mg",0.55
+J7516,"Injection, cyclosporine, 250 mg",75.65
+J7517,"Mycophenolate mofetil, oral, 250 mg",0.13
+J7518,"Mycophenolic acid, oral, 180 mg",0.33
+J7519,"Injection, mycophenolate mofetil, 10 mg",0.40
+J7520,"Sirolimus, oral, 1 mg",0.74
+J7521,"Tacrolimus, granules, oral suspension, 0.1 mg",1.30
+J7527,"Everolimus, oral, 0.25 mg",1.16
+J7528,"Mycophenolate mofetil, for suspension, oral, 100 mg",0.16
+J8501,"Aprepitant, oral, 5 mg",3.07
+J8502,"Injection, aprepitant (aponvie), 1 mg",2.00
+J8515,"Cabergoline, oral, 0.25 mg",0.30
+J8522,"Capecitabine, oral, 50 mg",0.08
+J8530,"Cyclophosphamide; oral, 25 mg",1.49
+J8540,"Dexamethasone, oral, 0.25 mg",0.03
+J8560,"Etoposide; oral, 50 mg",88.06
+J8610,"Methotrexate; oral, 2.5 mg",0.15
+J8611,"Methotrexate (jylamvo), oral, 2.5 mg",16.47
+J8612,"Methotrexate (xatmep), oral, 2.5 mg",22.92
+J8655,"Netupitant 300 mg and palonosetron 0.5 mg, oral",474.04
+J8700,"Temozolomide, oral, 5 mg",0.43
+J8705,"Topotecan, oral, 0.25 mg",125.33
+J9000,"Injection, doxorubicin hydrochloride, 10 mg",2.71
+J9011,"Injection, datopotamab deruxtecan-dlnk, 1 mg",52.50
+J9017,"Injection, arsenic trioxide, 1 mg",5.07
+J9021,"Injection, asparaginase, recombinant, (rylaze), 0.1 mg",58.70
+J9022,"Injection, atezolizumab, 10 mg",96.55
+J9023,"Injection, avelumab, 10 mg",108.64
+J9024,"Injection, atezolizumab, 5 mg and hyaluronidase-tqjs",32.55
+J9025,"Injection, azacitidine, 1 mg",0.40
+J9026,"Injection, tarlatamab-dlle, 1 mg",1612.42
+J9027,"Injection, clofarabine, 1 mg",16.25
+J9028,"Injection, nogapendekin alfa inbakicept-pmln, for intravesical use, 1 microgram",94.31
+J9032,"Injection, belinostat, 10 mg",54.45
+J9033,"Injection, bendamustine hydrochloride, not otherwise specified, 1 mg",2.96
+J9034,"Injection, bendamustine hcl (bendeka), 1 mg",12.53
+J9035,"Injection, bevacizumab, 10 mg",74.82
+J9036,"Injection, bendamustine hydrochloride, (belrapzo/bendamustine), 1 mg",11.60
+J9038,"Injection, axatilimab-csfr, 0.1 mg",56.46
+J9039,"Injection, blinatumomab, 1 microgram",172.90
+J9040,"Injection, bleomycin sulfate, 15 units",24.84
+J9041,"Injection, bortezomib, 0.1 mg",2.04
+J9042,"Injection, brentuximab vedotin, 1 mg",279.21
+J9043,"Injection, cabazitaxel, 1 mg",233.73
+J9045,"Injection, carboplatin, 50 mg",3.15
+J9047,"Injection, carfilzomib, 1 mg",60.29
+J9049,"Injection, bortezomib (hospira), not therapeutically equivalent to j9041, 0.1 mg",1.71
+J9050,"Injection, carmustine, 100 mg",240.01
+J9053,"Injection, belantamab mafodotin-blmf, 0.1 mg",36.25
+J9054,"Injection, bortezomib (boruzu), 0.1 mg",24.75
+J9055,"Injection, cetuximab, 10 mg",81.67
+J9056,"Injection, bendamustine hydrochloride (vivimusta), 1 mg",29.91
+J9060,"Injection, cisplatin, powder or solution, 10 mg",2.13
+J9061,"Injection, amivantamab-vmjw, 2 mg",23.22
+J9062,"Injection, amivantamab 5 mg and hyaluronidase-lpuj",40.74
+J9063,"Injection, mirvetuximab soravtansine-gynx, 1 mg",71.99
+J9065,"Injection, cladribine, per 1 mg",8.19
+J9071,"Injection, cyclophosphamide (auromedics), 5 mg",0.49
+J9072,"Injection, cyclophosphamide (frindovyx), 5 mg",8.92
+J9073,"Injection, cyclophosphamide (dr. reddy's), 5 mg",0.50
+J9074,"Injection, cyclophosphamide (sandoz), 5 mg",3.44
+J9075,"Injection, cyclophosphamide, not otherwise specified, 5 mg",0.58
+J9076,"Injection, cyclophosphamide (baxter), 5 mg",4.39
+J9100,"Injection, cytarabine, 100 mg",0.85
+J9118,"Injection, calaspargase pegol-mknl, 10 units",85.79
+J9119,"Injection, cemiplimab-rwlc, 1 mg",29.67
+J9120,"Injection, dactinomycin, 0.5 mg",307.41
+J9144,"Injection, daratumumab, 10 mg and hyaluronidase-fihj",57.05
+J9145,"Injection, daratumumab, 10 mg",73.77
+J9150,"Injection, daunorubicin, 10 mg",28.81
+J9153,"Injection, liposomal, 1 mg daunorubicin and 2.27 mg cytarabine",272.89
+J9155,"Injection, degarelix, 1 mg",4.48
+J9161,"Injection, denileukin diftitox-cxdl, 1 mcg",12.83
+J9171,"Injection, docetaxel, 1 mg",0.46
+J9172,"Injection, docetaxel (docivyx), 1 mg",46.29
+J9173,"Injection, durvalumab, 10 mg",87.95
+J9174,"Injection, docetaxel (beizray), 1 mg",46.81
+J9176,"Injection, elotuzumab, 1 mg",8.19
+J9177,"Injection, enfortumab vedotin-ejfv, 0.25 mg",36.66
+J9178,"Injection, epirubicin hcl, 2 mg",1.99
+J9179,"Injection, eribulin mesylate, 0.1 mg",59.98
+J9181,"Injection, etoposide, 10 mg",1.02
+J9184,"Injection, gemcitabine hydrochloride (avyxa), 200 mg",400.33
+J9185,"Injection, fludarabine phosphate, 50 mg",206.30
+J9190,"Injection, fluorouracil, 500 mg",2.02
+J9200,"Injection, floxuridine, 500 mg",4396.49
+J9201,"Injection, gemcitabine hydrochloride, not otherwise specified, 200 mg",2.88
+J9203,"Injection, gemtuzumab ozogamicin, 0.1 mg",247.37
+J9204,"Injection, mogamulizumab-kpkc, 1 mg",258.54
+J9205,"Injection, irinotecan liposome, 1 mg",65.86
+J9206,"Injection, irinotecan, 20 mg",1.85
+J9207,"Injection, ixabepilone, 1 mg",139.75
+J9208,"Injection, ifosfamide, 1 gram",27.61
+J9209,"Injection, mesna, 200 mg",1.31
+J9210,"Injection, emapalumab-lzsg, 1 mg",392.78
+J9211,"Injection, idarubicin hydrochloride, 5 mg",38.13
+J9223,"Injection, lurbinectedin, 0.1 mg",215.95
+J9227,"Injection, isatuximab-irfc, 10 mg",88.16
+J9228,"Injection, ipilimumab, 1 mg",190.43
+J9229,"Injection, inotuzumab ozogamicin, 0.1 mg",2873.10
+J9232,"Injection, docetaxel (hospira), not therapeutically equivalent to j9171, 1 mg",0.51
+J9245,"Injection, melphalan hydrochloride, not otherwise specified, 50 mg",104.90
+J9246,"Injection, melphalan (evomela), 1 mg",18.04
+J9248,"Injection, melphalan (hepzato), 1 mg",801.48
+J9256,"Injection, nipocalimab-aahu, 3 mg",32.57
+J9260,"Injection, methotrexate sodium, 50 mg",2.94
+J9261,"Injection, nelarabine, 50 mg",65.41
+J9263,"Injection, oxaliplatin, 0.5 mg",0.06
+J9264,"Injection, paclitaxel protein-bound particles, 1 mg",6.59
+J9266,"Injection, pegaspargase, per single dose vial",29663.97
+J9267,"Injection, paclitaxel, 1 mg",0.11
+J9268,"Injection, pentostatin, 10 mg",2697.99
+J9269,"Injection, tagraxofusp-erzs, 10 micrograms",357.52
+J9271,"Injection, pembrolizumab, 1 mg",60.65
+J9272,"Injection, dostarlimab-gxly, 10 mg",251.30
+J9273,"Injection, tisotumab vedotin-tftv, 1 mg",196.12
+J9274,"Injection, tebentafusp-tebn, 1 microgram",228.01
+J9276,"Injection, zanidatamab-hrii, 2 mg",25.66
+J9277,"Injection, pembrolizumab, 1 mg and berahyaluronidase alfa-pmph",31.94
+J9278,"Injection, carboplatin (avyxa), 1 mg",5.20
+J9280,"Injection, mitomycin, 5 mg",34.11
+J9286,"Injection, glofitamab-gxbm, 2.5 mg",2864.68
+J9289,"Injection, nivolumab, 2 mg and hyaluronidase-nvhy",28.14
+J9292,"Injection, pemetrexed dipotassium, 10 mg",73.67
+J9293,"Injection, mitoxantrone hydrochloride, per 5 mg",29.70
+J9294,"Injection, pemetrexed (hospira), not therapeutically equivalent to j9305, 10 mg",2.94
+J9297,"Injection, pemetrexed (sandoz), not therapeutically equivalent to j9305, 10 mg",4.88
+J9298,"Injection, nivolumab and relatlimab-rmbw, 3 mg/1 mg",205.51
+J9299,"Injection, nivolumab, 1 mg",34.22
+J9301,"Injection, obinutuzumab, 10 mg",84.46
+J9303,"Injection, panitumumab, 10 mg",182.19
+J9304,"Injection, pemetrexed (pemfexy), 10 mg",7.99
+J9305,"Injection, pemetrexed, not otherwise specified, 10 mg",6.95
+J9306,"Injection, pertuzumab, 1 mg",17.20
+J9307,"Injection, pralatrexate, 1 mg",386.12
+J9308,"Injection, ramucirumab, 5 mg",76.57
+J9309,"Injection, polatuzumab vedotin-piiq, 1 mg",143.61
+J9311,"Injection, rituximab 10 mg and hyaluronidase",36.39
+J9312,"Injection, rituximab, 10 mg",73.28
+J9314,"Injection, pemetrexed (teva), not therapeutically equivalent to j9305, 10 mg",10.99
+J9316,"Injection, pertuzumab, trastuzumab, and hyaluronidase-zzxf, per 10 mg",59.90
+J9317,"Injection, sacituzumab govitecan-hziy, 2.5 mg",37.64
+J9319,"Injection, romidepsin, lyophilized, 0.1 mg",30.71
+J9321,"Injection, epcoritamab-bysp, 0.16 mg",57.99
+J9324,"Injection, pemetrexed (pemrydi rtu), 10 mg",67.94
+J9325,"Injection, talimogene laherparepvec, per 1 million plaque forming units",77.34
+J9326,"Injection, telisotuzumab vedotin-tllv, 1 mg",146.06
+J9328,"Injection, temozolomide, 1 mg",10.41
+J9329,"Injection, tislelizumab-jsgr, 1mg",58.17
+J9330,"Injection, temsirolimus, 1 mg",32.68
+J9331,"Injection, sirolimus protein-bound particles, 1 mg",91.03
+J9332,"Injection, efgartigimod alfa-fcab, 2mg",32.55
+J9333,"Injection, rozanolixizumab-noli, 1 mg",23.59
+J9334,"Injection, efgartigimod alfa, 2 mg and hyaluronidase-qvfc",34.26
+J9341,"Injection, thiotepa (tepylute), 1 mg",36.64
+J9342,"Injection, thiotepa, not otherwise specified, 1 mg",4.93
+J9345,"Injection, retifanlimab-dlwr, 1 mg",30.98
+J9347,"Injection, tremelimumab-actl, 1 mg",146.89
+J9348,"Injection, naxitamab-gqgk, 1 mg",684.90
+J9349,"Injection, tafasitamab-cxix, 2 mg",14.43
+J9350,"Injection, mosunetuzumab-axgb, 1 mg",674.50
+J9351,"Injection, topotecan, 0.1 mg",2.76
+J9352,"Injection, trabectedin, 0.1 mg",410.48
+J9353,"Injection, margetuximab-cmkb, 5 mg",56.44
+J9354,"Injection, ado-trastuzumab emtansine, 1 mg",43.63
+J9355,"Injection, trastuzumab, excludes biosimilar, 10 mg",70.24
+J9356,"Injection, trastuzumab, 10 mg and hyaluronidase-oysk",58.34
+J9357,"Injection, valrubicin, intravesical, 200 mg",1247.05
+J9358,"Injection, fam-trastuzumab deruxtecan-nxki, 1 mg",32.87
+J9359,"Injection, loncastuximab tesirine-lpyl, 0.075 mg",226.61
+J9360,"Injection, vinblastine sulfate, 1 mg",5.61
+J9380,"Injection, teclistamab-cqyv, 0.5 mg",35.32
+J9381,"Injection, teplizumab-mzwv, 5 mcg",39.22
+J9382,"Injection, zenocutuzumab-zbco, 1 mg",33.86
+J9390,"Injection, vinorelbine tartrate, 10 mg",4.29
+J9394,"Injection, fulvestrant (fresenius kabi) not therapeutically equivalent to j9395, 25 mg",27.11
+J9395,"Injection, fulvestrant, 25 mg",5.28
+J9400,"Injection, ziv-aflibercept, 1 mg",8.67
+J9601,"Injection, linvoseltamab-gcpt, 1 mg",99.31
+K0609,"Replacement electrodes for use with automated external defibrillator, garment type only, each",1148.78
+L0859,"Addition to halo procedure, magnetic resonance image compatible systems, rings and pins, any material",1866.53
+L1860,"Knee orthosis, modification of supracondylar prosthetic socket, custom fabricated (sk)",1644.10
+L1950,"Ankle foot orthosis, spiral, (institute of rehabilitative medicine type), plastic, custom fabricated",1141.23
+L1951,"Ankle foot orthosis, spiral, (institute of rehabilitative medicine type), plastic or other material, prefabricated item that has been trimmed, bent, molded, assembled, or otherwise customized to fit a specific patient by an individual with expertise",1229.35
+L1952,"Ankle foot orthosis, spiral, (institute of rehabilitative medicine type), plastic or other material, prefabricated, off-the-shelf",1229.35
+L2126,"Knee ankle foot orthosis, fracture orthosis, femoral fracture cast orthosis, thermoplastic type casting material, custom fabricated",1834.71
+L2128,"Knee ankle foot orthosis, fracture orthosis, femoral fracture cast orthosis, custom fabricated",2627.25
+L2132,"Kafo, fracture orthosis, femoral fracture cast orthosis, soft, prefabricated, includes fitting and adjustment",1235.97
+L2134,"Kafo, fracture orthosis, femoral fracture cast orthosis, semi-rigid, prefabricated, includes fitting and adjustment",1481.88
+L2136,"Kafo, fracture orthosis, femoral fracture cast orthosis, rigid, prefabricated, includes fitting and adjustment",1811.94
+L2350,"Addition to lower extremity, prosthetic type, (bk) socket, molded to patient model, (used for 'ptb' 'afo' orthoses)",1365.23
+L2768,"Orthotic side bar disconnect device, per bar",190.71
+L2850,"Addition to lower extremity orthosis, femoral length sock, fracture or equal, each",94.86
+L5230,"Above knee, for proximal femoral focal deficiency, constant friction knee, shin, sach foot",6209.65
+L5985,"All endoskeletal lower extremity prostheses, dynamic prosthetic pylon",416.81
+L6881,"Automatic grasp feature, addition to upper limb electric prosthetic terminal device",5996.11
+L6882,"Microprocessor control feature, addition to upper limb prosthetic terminal device",4548.36
+L7700,"Gasket or seal, for use with prosthetic socket insert, any type, each",184.22
+L8400,"Prosthetic sheath, below knee, each",25.69
+L8410,"Prosthetic sheath, above knee, each",33.82
+L8415,"Prosthetic sheath, upper limb, each",34.99
+L8417,"Prosthetic sheath/sock, including a gel cushion layer, below knee or above knee, each",110.26
+L8420,"Prosthetic sock, multiple ply, below knee, each",31.74
+L8430,"Prosthetic sock, multiple ply, above knee, each",36.14
+L8435,"Prosthetic sock, multiple ply, upper limb, each",34.32
+L8440,"Prosthetic shrinker, below knee, each",68.26
+L8460,"Prosthetic shrinker, above knee, each",108.79
+L8465,"Prosthetic shrinker, upper limb, each",79.62
+L8470,"Prosthetic sock, single ply, fitting, below knee, each",10.89
+L8480,"Prosthetic sock, single ply, fitting, above knee, each",15.03
+L8485,"Prosthetic sock, single ply, fitting, upper limb, each",18.16
+L8501,Tracheostomy speaking valve,197.18
+P3001,"Screening papanicolaou smear, cervical or vaginal, up to three smears, requiring interpretation by physician",24.05
+P9041,"Infusion, albumin (human), 5%, 50 ml",10.62
+P9045,"Infusion, albumin (human), 5%, 250 ml",53.08
+P9046,"Infusion, albumin (human), 25%, 20 ml",21.33
+P9047,"Infusion, albumin (human), 25%, 50 ml",53.32
+Q0035,Cardiokymography,19.04
+Q0091,"Screening papanicolaou smear; obtaining, preparing and conveyance of cervical or vaginal smear to laboratory",46.09
+Q0092,Set-up portable x-ray equipment,25.72
+Q0138,"Injection, ferumoxytol, for treatment of iron deficiency anemia, 1 mg (non-esrd use)",0.37
+Q0139,"Injection, ferumoxytol, for treatment of iron deficiency anemia, 1 mg (for esrd on dialysis)",0.37
+Q0162,"Ondansetron 1 mg, oral, fda approved prescription anti-emetic, for use as a complete therapeutic substitute for an iv anti-emetic at the time of chemotherapy treatment, not to exceed a 48 hour dosage regimen",0.02
+Q0167,"Dronabinol, 2.5 mg, oral, fda approved prescription anti-emetic, for use as a complete therapeutic substitute for an iv anti-emetic at the time of chemotherapy treatment, not to exceed a 48 hour dosage regimen",1.87
+Q0224,"Injection, pemivibart, for the pre-exposure prophylaxis only, for certain adults and adolescents (12 years of age and older weighing at least 40 kg) with no known sars-cov-2 exposure, and who either have moderate-to-severe immune compromise due to a medical condition or receipt of immunosuppressive medications or treatments, and are unlikely to mount an adequate immune response to covid-19 vaccination, 4500 mg",7239.00
+Q0234,"Injection, tocilizumab-bavi, for hospitalized adult patients with covid-19 who are receiving systemic corticosteroids and require supplemental oxygen, non-invasive or invasive mechanical ventilation, or extracorporeal membrane oxygenation only, 1 mg",6.33
+Q0237,"Injection, tocilizumab-anoh, for hospitalized adult patients with covid-19 who are receiving systemic corticosteroids and require supplemental oxygen, non-invasive or invasive mechanical ventilation, or extracorporeal membrane oxygenation (ecmo) only, 1 mg",4.92
+Q0238,"Injection, tocilizumab-aazg, for hospitalized adult patients with covid-19 who are receiving systemic corticosteroids and require supplemental oxygen, non-invasive or invasive mechanical ventilation, or extracorporeal membrane oxygenation (ecmo) only, 1 mg",5.58
+Q0249,"Injection, tocilizumab, for hospitalized adults and pediatric patients (2 years of age and older) with covid-19 who are receiving systemic corticosteroids and require supplemental oxygen, non-invasive or invasive mechanical ventilation, or extracorporeal membrane oxygenation (ecmo) only, 1 mg",7.57
+Q2050,"Injection, doxorubicin hydrochloride, liposomal, not otherwise specified, 10 mg",116.61
+Q4081,"Injection, epoetin alfa, 100 units (for esrd on dialysis)",0.69
+Q4102,"Oasis wound matrix, per square centimeter (add-on, list separately in addition to primary procedure)",127.25
+Q4104,"Integra bilayer matrix wound dressing (bmwd), per square centimeter (add-on, list separately in addition to primary procedure)",127.25
+Q4124,"Oasis ultra tri-layer wound matrix, per square centimeter (add-on, list separately in addition to primary procedure)",127.25
+Q4161,"Bio-connekt wound matrix, per square centimeter (add-on, list separately in addition to primary procedure)",127.25
+Q4163,"Woundex, bioskin, per square centimeter (add-on, list separately in addition to primary procedure)",127.25
+Q4169,"Artacent wound, per square centimeter (add-on, list separately in addition to primary procedure)",127.25
+Q4181,"Amnio wound, per square centimeter (add-on, list separately in addition to primary procedure)",127.25
+Q4217,"Woundfix, biowound, woundfix plus, biowound plus, woundfix xplus or biowound xplus, per square centimeter (add-on, list separately in addition to primary procedure)",127.25
+Q4326,"Woundplus, per square centimeter (add-on, list separately in addition to primary procedure)",127.25
+Q5098,"Injection, ustekinumab-srlf (imuldosa), biosimilar, 1 mg",11.55
+Q5099,"Injection, ustekinumab-stba (steqeyma), biosimilar, 1 mg",3.08
+Q5100,"Injection, ustekinumab-kfce (yesintek), biosimilar, 1 mg",3.29
+Q5101,"Injection, filgrastim-sndz, biosimilar, (zarxio), 1 microgram",0.35
+Q5103,"Injection, infliximab-dyyb, biosimilar, (inflectra), 10 mg",27.71
+Q5104,"Injection, infliximab-abda, biosimilar, (renflexis), 10 mg",26.62
+Q5105,"Injection, epoetin alfa-epbx, biosimilar, (retacrit) (for esrd on dialysis), 100 units",0.80
+Q5106,"Injection, epoetin alfa-epbx, biosimilar, (retacrit) (for non-esrd use), 1000 units",7.97
+Q5107,"Injection, bevacizumab-awwb, biosimilar, (mvasi), 10 mg",24.53
+Q5108,"Injection, pegfilgrastim-jmdb (fulphila), biosimilar, 0.5 mg",67.02
+Q5110,"Injection, filgrastim-aafi, biosimilar, (nivestym), 1 microgram",0.32
+Q5111,"Injection, pegfilgrastim-cbqv (udenyca), biosimilar, 0.5 mg",149.13
+Q5112,"Injection, trastuzumab-dttb, biosimilar, (ontruzant), 10 mg",20.99
+Q5113,"Injection, trastuzumab-pkrb, biosimilar, (herzuma), 10 mg",54.94
+Q5114,"Injection, trastuzumab-dkst, biosimilar, (ogivri), 10 mg",31.95
+Q5115,"Injection, rituximab-abbs, biosimilar, (truxima), 10 mg",34.56
+Q5116,"Injection, trastuzumab-qyyp, biosimilar, (trazimera), 10 mg",13.03
+Q5117,"Injection, trastuzumab-anns, biosimilar, (kanjinti), 10 mg",60.52
+Q5118,"Injection, bevacizumab-bvzr, biosimilar, (zirabev), 10 mg",25.89
+Q5119,"Injection, rituximab-pvvr, biosimilar, (ruxience), 10 mg",16.16
+Q5120,"Injection, pegfilgrastim-bmez (ziextenzo), biosimilar, 0.5 mg",132.10
+Q5121,"Injection, infliximab-axxq, biosimilar, (avsola), 10 mg",30.83
+Q5122,"Injection, pegfilgrastim-apgf (nyvepria), biosimilar, 0.5 mg",136.91
+Q5123,"Injection, rituximab-arrx, biosimilar, (riabni), 10 mg",18.53
+Q5124,"Injection, ranibizumab-nuna, biosimilar, (byooviz), 0.1 mg",240.97
+Q5125,"Injection, filgrastim-ayow, biosimilar, (releuko), 1 microgram",0.31
+Q5126,"Injection, bevacizumab-maly, biosimilar, (alymsys), 10 mg",79.94
+Q5127,"Injection, pegfilgrastim-fpgk (stimufend), biosimilar, 0.5 mg",143.67
+Q5128,"Injection, ranibizumab-eqrn (cimerli), biosimilar, 0.1 mg",82.53
+Q5129,"Injection, bevacizumab-adcd (vegzelma), biosimilar, 10 mg",23.65
+Q5130,"Injection, pegfilgrastim-pbbk (fylnetra), biosimilar, 0.5 mg",105.11
+Q5133,"Injection, tocilizumab-bavi (tofidence), biosimilar, 1 mg",5.01
+Q5134,"Injection, natalizumab-sztn (tyruko), biosimilar, 1 mg",24.49
+Q5135,"Injection, tocilizumab-aazg (tyenne), biosimilar, 1 mg",4.06
+Q5136,"Injection, denosumab-bbdz (jubbonti/wyost), biosimilar, 1 mg",27.67
+Q5138,"Injection, ustekinumab-auub (wezlana), biosimilar, intravenous, 1 mg",2.35
+Q5146,"Injection, trastuzumab-strf (hercessi), biosimilar, 10 mg",32.46
+Q5147,"Injection, aflibercept-ayyh (pavblu), biosimilar, 1 mg",803.26
+Q5148,"Injection, filgrastim-txid (nypozi), biosimilar, 1 microgram",1.03
+Q5151,"Injection, eculizumab-aagh (epysqli), biosimilar, 2 mg",31.77
+Q5152,"Injection, eculizumab-aeeb (bkemv), biosimilar, 2 mg",41.16
+Q5156,"Injection, tocilizumab-anoh (avtozma), biosimilar, 1 mg",4.69
+Q5157,"Injection, denosumab-bmwo (stoboclo/osenvelt), biosimilar, 1 mg",25.98
+Q5158,"Injection, denosumab-bnht (bomyntra/conexxence), biosimilar, 1 mg",28.82
+Q5160,"Injection, bevacizumab-nwgd (jobevne), biosimilar, 10 mg",82.24
+Q5162,"Injection, denosumab-nxxp (bildyos/bilprevda), biosimilar, 1 mg",15.66
+Q9950,"Injection, sulfur hexafluoride lipid microspheres, per ml",18.13
+Q9956,"Injection, octafluoropropane microspheres, per ml",40.85
+Q9957,"Injection, perflutren lipid microspheres, per ml",40.85
+Q9958,"High osmolar contrast material, up to 149 mg/ml iodine concentration, per ml",0.08
+Q9961,"High osmolar contrast material, 250-299 mg/ml iodine concentration, per ml",0.22
+Q9963,"High osmolar contrast material, 350-399 mg/ml iodine concentration, per ml",0.21
+Q9965,"Low osmolar contrast material, 100-199 mg/ml iodine concentration, per ml",0.75
+Q9966,"Low osmolar contrast material, 200-299 mg/ml iodine concentration, per ml",0.44
+Q9967,"Low osmolar contrast material, 300-399 mg/ml iodine concentration, per ml",0.16
+Q9991,"Injection, buprenorphine extended-release (sublocade), less than or equal to 100 mg",2068.16
+Q9992,"Injection, buprenorphine extended-release (sublocade), greater than 100 mg",2068.16
+Q9997,"Injection, ustekinumab-ttwe (pyzchiva), intravenous, 1 mg",8.55
+Q9998,"Injection, ustekinumab-aekn (selarsdi), biosimilar, 1 mg",10.53
+Q9999,"Injection, ustekinumab-aauz (otulfi), biosimilar, 1 mg",13.15
+V2623,"Prosthetic eye, plastic, custom",1465.24

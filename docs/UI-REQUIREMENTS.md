@@ -55,19 +55,33 @@ no 837 fidelity claim attaches to it.
   `detail` and leaves the table as it was. Those messages name the segment at fault (ADR-021), so
   they are worth surfacing verbatim rather than replacing with "import failed".
 
+## Example data, said out loud
+
+The generated bills are **example data**, and the UI says so where a user can see it — not buried in
+a footnote.
+
+This is not modesty. The charges come from published CMS fee schedules, so they are real figures of
+the right order of magnitude for the code, and that is exactly what makes the caveat necessary: they
+look like prices. They are not what any particular provider bills, they do not vary by the state the
+form selected, and they may not correspond to the randomly chosen provider on the claim at all. The
+whole corpus exists to give the 837 translators something realistic to chew on.
+
+The same goes for the providers: real NPIs from the public NPPES snapshot, attached to subscribers
+and diagnoses that are invented, in combinations that never happened.
+
 ## Gaps in the published contract
 
 Two things this document asks for have no endpoint behind them yet. Recorded here so the gap is
 known before the client is written, not discovered halfway through it.
 
-1. **The medical code catalog is not published.** `IMedicalCodeCatalog` knows its categories and
-   their codes; nothing exposes them. A searchable, category-scannable dropdown cannot be built
-   against a hard-coded copy without it drifting from the server's own seed corpus.
-2. **The jurisdiction state list is not published.** Same shape of problem, smaller: the client
-   would otherwise carry its own list of states the generator may or may not have providers for.
+Both gaps recorded here are now closed, by `GET /api/v1/codes` and `GET /api/v1/jurisdictions`
+(ADR-025). They are kept in the record because the reasoning still governs how the client uses them:
 
-Both are read-only additions. Both are routes governance does not name, so both need a register
-entry under the ADR-009 convention before they are added.
+1. **The medical code catalog.** A searchable, category-scannable dropdown must be built against the
+   served catalogue, never a hard-coded copy — a copy drifts from the server's seed corpus, and the
+   drift surfaces as a batch-generate 400 for a category the dropdown offered.
+2. **The jurisdiction list.** Same shape. The route serves only states the provider snapshot can
+   actually source a provider for, so the selector cannot offer one the generator would refuse.
 
 ## Reversibility, and what the client should not imply
 
