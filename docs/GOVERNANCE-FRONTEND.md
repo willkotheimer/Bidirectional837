@@ -101,16 +101,59 @@ A field not in this table and not carrying a governed name is a governance viola
 
 ## 4. The data layer
 
-`src/data/` is the only place that talks to the server.
+The project is **`src/Translator.UI`**, alongside the .NET projects and outside the solution.
+`src/data/` within it is the only place that talks to the server.
 
 - One hook per published operation. `useQuery` for a GET, `useMutation` for a POST.
-- **Components never call `fetch`.** A component that fetches has put request state — loading,
-  error, retry — somewhere it cannot be tested or reused.
+- **`fetch`, not axios.** The platform does this now; a dependency for it is surface without benefit.
+- **Components never call `fetch` themselves.** A component that fetches has put request state —
+  loading, error, retry — somewhere it cannot be tested or reused.
+- **Invalidate on save.** A mutation that changes what a query would return invalidates that query.
+  Generating or importing changes the claim set, so both invalidate it. Hand-patching a cache to
+  match what the server *probably* did is how a client starts disagreeing with the server quietly.
 - Errors surface the server's problem document `detail` verbatim. The reader refuses malformed 837
   files by naming the segment at fault (ADR-021); replacing that with "import failed" throws away the
   only part a user can act on.
 - The client does not retry a rejected import. ADR-022 makes an import all-or-nothing; a silent retry
   risks duplicating everything that succeeded.
+
+---
+
+## 4a. React conventions
+
+- **Functional components throughout.** No classes.
+- **Derive during render; do not synchronise.** `useMemo` for anything computed from props, state or
+  query data. `useEffect` is for a genuine side effect — reaching outside React — and nothing else.
+  An effect that sets state from other state is a second source of truth that arrives one render
+  late, and it is the most common way a React table starts disagreeing with the data behind it.
+- **`useReducer` for complex state** that `useQuery` does not already hold. Server data lives in the
+  query cache; genuinely local multi-field state that transitions together lives in a reducer, where
+  the transitions can be read in one place and tested without rendering anything.
+- **Helper functions are preferred** for anything reusable or worth testing. A function that takes
+  values and returns values can be tested directly; the same logic inside a component can only be
+  tested through the DOM. Formatting, CSV construction, grouping, filtering and validation are all
+  helpers.
+
+---
+
+## 4b. Downloads
+
+When the client produces a CSV or an 837 ZIP, **the link to it stays on screen** rather than
+vanishing once the browser has taken the file.
+
+*One correction, because the obvious reading is not possible.* A web page cannot link to the user's
+downloads folder. It never learns the path the browser chose, and `file://` navigation from an
+`https://` page is blocked. So "keep a link pointing at the downloads folder" cannot be built by
+anyone, in any framework.
+
+What satisfies the intent: hold the generated `Blob` and keep its object URL on screen, so the link
+re-opens or re-saves the exact bytes that were downloaded. The artefact stays reachable for the life
+of the page, which is what the requirement is actually for.
+
+Two rules follow. The label says what it is — filename, what it contains, when it was made — because
+a bare "download" link a second time is indistinguishable from the first. And object URLs are
+revoked when the page clears its store, since they pin the whole blob in memory and a 500-claim
+archive is not small.
 
 ---
 
@@ -160,7 +203,15 @@ Governance Section 4 applies to the client unchanged: tests are written first an
 failing** before the implementation exists, and an implementation that passes on its first build
 without a recorded failing run is a governance violation.
 
-- **Vitest and Testing Library.** Behaviour, not markup.
+**Vitest**, with Testing Library for anything that renders.
+
+- **Every helper has tests, and they live in a `Helpers` subfolder of the test tree.** Helpers are
+  where the testable logic is deliberately put (§4a), so this is where the bulk of the suite lives.
+- **`it.each`, driven by a table of variants.** This is the same discipline the backend suite runs
+  on: an invariant asserted over many inputs rather than one example, so a case can be added without
+  writing a new test and a failure names the input that broke. `it.each` is to Vitest what
+  `[Theory]` with `MemberData` is to xUnit, and the whole of `docs/TDD-EVIDENCE.md` is built on that
+  distinction.
 - **A test asserts what a user can do**, not which elements exist. Query by role and label.
 - **No snapshot test stands alone.** A snapshot records that output changed, not that it is right,
   and it is updated by reflex. Snapshots may support an assertion; they may not be one.
@@ -204,5 +255,6 @@ ungoverned half.
    so it is a backend section of its own and should land before any client code.
 3. **The Reversibility Dashboard.** Governance Feature 3 names one; `docs/UI-REQUIREMENTS.md`
    describes an import table instead. Recorded there as a deliberate omission — worth confirming.
-4. **Where the client lives** — `client/` alongside `src/` and `tests/` is proposed, kept out of the
-   .NET solution.
+
+*Settled since drafting:* the project is `src/Translator.UI`; there is no progress tracker for now;
+local storage is the only store and clears at page load.

@@ -9,7 +9,8 @@ These are requirements, not decisions. Decisions taken in building against them 
 
 ## Stack
 
-- **Vite.** React with the Vite dev server and build.
+- **Vite.** React with the Vite dev server and build. The project is `src/Translator.UI`.
+- **`fetch`**, not axios.
 - **The APIs already built.** No new server behaviour is assumed by this document except where
   *Gaps in the published contract* below says otherwise, and each of those needs an ADR before it is
   added, because governance Section 5 names only two routes and ADR-009 governs the rest.
@@ -82,26 +83,23 @@ attaches to it.
   `detail` and leaves the table as it was. Those messages name the segment at fault (ADR-021), so
   they are worth surfacing verbatim rather than replacing with "import failed".
 
-## Progress tracker
+## Progress tracker — deferred
 
-Both tabs show progress while the user waits, with information about what the backend is doing.
+Not built for now, at the project owner's direction.
 
-**It must not invent stages it cannot observe.** This is the one requirement here with a trap in it.
-The API is request/response: there is no progress stream, and a 500-bill generation returns in about
-a second. A tracker animating through "Validating… Generating… Persisting…" on a timer is a UI
-telling the user something it does not know, which is the same class of dishonesty as a reversibility
-tick that collapses two verdicts into one.
+Recorded rather than dropped, because the reasoning matters if it comes back: the API is
+request/response and a 500-bill generation returns in about a second, so a tracker animating through
+invented stages would be the UI telling the user something it does not know. If the operations ever
+become genuinely long-running, this needs a real progress channel rather than a timer.
 
-Two honest options, and the choice is the project owner's:
+## Downloads stay reachable
 
-1. **Narrate what is genuinely observable client-side** — request sent, response received, parsing,
-   rendering — and describe the governed backend steps as *what this operation does* rather than as
-   *what is happening right now*. No fabricated timing. Costs nothing and needs no backend change.
-2. **Report real server progress**, which needs a streaming or polling endpoint the contract does not
-   have. That is a backend section, and for a one-second operation it is a large amount of machinery
-   for a small amount of truth.
+A CSV or 837 ZIP the client produces keeps a visible link after the browser has taken it, labelled
+with what it is rather than a bare "download".
 
-Option 1 is recommended unless the owner wants the operations to be genuinely long-running later.
+The link cannot point at the user's downloads folder — a page never learns that path and `file://`
+navigation is blocked from `https://`. It points at the retained blob instead, which re-opens the
+same bytes. See `docs/GOVERNANCE-FRONTEND.md` §4b.
 
 ## Example data, said out loud
 
