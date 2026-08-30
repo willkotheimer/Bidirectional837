@@ -10,8 +10,8 @@ namespace Translator.Api.Tests;
 /// React forms must reflect ASC X12 nomenclature (e.g. Loop2000A_BillingProvider,
 /// CLM02_TotalClaimChargeAmount)."
 ///
-/// docs/api/swagger.json declares those names. The application serves clM02_TotalClaimChargeAmount,
-/// bhT03_ClaimSubmitterTransactionId and loop2010AA_NM103_BillingProviderLastNameOrOrg, because the
+/// docs/api/swagger.json declares those names. The application serves CLM02_TotalClaimChargeAmount,
+/// BHT03_ClaimSubmitterTransactionId and Loop2010AA_NM103_BillingProviderLastNameOrOrg, because the
 /// default camelCase policy lowercases the leading character of an acronym. Those are not ASC X12
 /// nomenclature; they are a mangling of it.
 ///
@@ -99,7 +99,7 @@ public class ContractNamingTheories : IClassFixture<GovernedApiFactory>
     {
         var claim = await GenerateOneAsync();
         var lines = claim.GetProperty(
-            claim.TryGetProperty("LineItems", out _) ? "LineItems" : "lineItems");
+            claim.TryGetProperty("LineItems", out _) ? "LineItems" : "LineItems");
 
         Assert.True(lines[0].TryGetProperty(governedName, out _),
             $"'{governedName}' does not appear in the served service line.");

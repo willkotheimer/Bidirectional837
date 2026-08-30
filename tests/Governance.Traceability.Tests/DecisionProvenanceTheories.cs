@@ -145,6 +145,10 @@ public class DecisionProvenanceTheories
 
     private static IEnumerable<string> EnumerateSourceFiles()
     {
+        // PROVENANCE: ADR-027 - the client is inside the marker convention, not beside it. Frontend
+        // governance Section 8 requires it: the alternative is a governed project with an ungoverned
+        // half, and retrofitting markers after the code exists is what Section 2 already had to do
+        // once. node_modules and build output are skipped below.
         foreach (var directory in new[] { "src", "tests", "scripts", "infra" })
         {
             var absolute = Path.Combine(RepoRoot, directory);
@@ -153,9 +157,11 @@ public class DecisionProvenanceTheories
             foreach (var path in Directory.EnumerateFiles(absolute, "*.*", SearchOption.AllDirectories))
             {
                 var extension = Path.GetExtension(path);
-                if (extension is not (".cs" or ".py" or ".bicep")) continue;
+                if (extension is not (".cs" or ".py" or ".bicep" or ".ts" or ".tsx")) continue;
                 if (path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")) continue;
                 if (path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")) continue;
+                if (path.Contains($"{Path.DirectorySeparatorChar}node_modules{Path.DirectorySeparatorChar}")) continue;
+                if (path.Contains($"{Path.DirectorySeparatorChar}dist{Path.DirectorySeparatorChar}")) continue;
                 yield return path;
             }
         }

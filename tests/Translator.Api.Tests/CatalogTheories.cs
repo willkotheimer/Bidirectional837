@@ -36,10 +36,10 @@ public class CatalogTheories : IClassFixture<GovernedApiFactory>
 
         foreach (var code in codes.EnumerateArray())
         {
-            Assert.False(string.IsNullOrWhiteSpace(code.GetProperty("code").GetString()));
-            Assert.False(string.IsNullOrWhiteSpace(code.GetProperty("category").GetString()));
-            Assert.False(string.IsNullOrWhiteSpace(code.GetProperty("description").GetString()));
-            Assert.True(code.GetProperty("standardCharge").GetDecimal() > 0m);
+            Assert.False(string.IsNullOrWhiteSpace(code.GetProperty("Code").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(code.GetProperty("Category").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(code.GetProperty("Description").GetString()));
+            Assert.True(code.GetProperty("StandardCharge").GetDecimal() > 0m);
         }
     }
 
@@ -57,7 +57,7 @@ public class CatalogTheories : IClassFixture<GovernedApiFactory>
 
         Assert.True(codes.GetArrayLength() > 0, $"No codes were served for {category}.");
         Assert.All(codes.EnumerateArray().ToList(),
-            code => Assert.Equal(category, code.GetProperty("category").GetString()));
+            code => Assert.Equal(category, code.GetProperty("Category").GetString()));
     }
 
     /// <summary>
@@ -93,9 +93,9 @@ public class CatalogTheories : IClassFixture<GovernedApiFactory>
 
         foreach (var jurisdiction in jurisdictions.EnumerateArray())
         {
-            Assert.Equal(2, jurisdiction.GetProperty("code").GetString()!.Length);
-            Assert.False(string.IsNullOrWhiteSpace(jurisdiction.GetProperty("name").GetString()));
-            Assert.True(jurisdiction.GetProperty("providerCount").GetInt32() > 0);
+            Assert.Equal(2, jurisdiction.GetProperty("Code").GetString()!.Length);
+            Assert.False(string.IsNullOrWhiteSpace(jurisdiction.GetProperty("Name").GetString()));
+            Assert.True(jurisdiction.GetProperty("ProviderCount").GetInt32() > 0);
         }
     }
 
@@ -111,7 +111,7 @@ public class CatalogTheories : IClassFixture<GovernedApiFactory>
 
         var jurisdictions = JsonDocument.Parse(
             await client.GetStringAsync("/api/v1/jurisdictions")).RootElement;
-        var state = jurisdictions[0].GetProperty("code").GetString();
+        var state = jurisdictions[0].GetProperty("Code").GetString();
 
         var response = await client.PostAsJsonAsync("/api/v1/bills/batch-generate", new
         {
@@ -136,8 +136,8 @@ public class CatalogTheories : IClassFixture<GovernedApiFactory>
         var advertised = JsonDocument.Parse(await client.GetStringAsync("/api/v1/codes")).RootElement
             .EnumerateArray()
             .ToDictionary(
-                code => code.GetProperty("code").GetString()!,
-                code => code.GetProperty("standardCharge").GetDecimal());
+                code => code.GetProperty("Code").GetString()!,
+                code => code.GetProperty("StandardCharge").GetDecimal());
 
         var response = await client.PostAsJsonAsync("/api/v1/bills/batch-generate", new
         {
@@ -150,11 +150,11 @@ public class CatalogTheories : IClassFixture<GovernedApiFactory>
 
         foreach (var claim in claims.EnumerateArray())
         {
-            foreach (var line in claim.GetProperty("lineItems").EnumerateArray())
+            foreach (var line in claim.GetProperty("LineItems").EnumerateArray())
             {
-                var code = line.GetProperty("sV101_2_ProcedureCode").GetString()!;
-                var units = line.GetProperty("sV104_ServiceUnitCount").GetDecimal();
-                var amount = line.GetProperty("sV102_LineItemChargeAmount").GetDecimal();
+                var code = line.GetProperty("SV101_2_ProcedureCode").GetString()!;
+                var units = line.GetProperty("SV104_ServiceUnitCount").GetDecimal();
+                var amount = line.GetProperty("SV102_LineItemChargeAmount").GetDecimal();
 
                 Assert.True(advertised.ContainsKey(code), $"{code} was billed but is not catalogued.");
                 Assert.Equal(advertised[code] * units, amount);

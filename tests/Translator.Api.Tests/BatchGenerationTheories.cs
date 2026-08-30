@@ -52,10 +52,10 @@ public class BatchGenerationTheories : IClassFixture<GovernedApiFactory>
 
         foreach (var claim in claims.EnumerateArray())
         {
-            var lineSum = claim.GetProperty("lineItems").EnumerateArray()
-                .Sum(line => line.GetProperty("sV102_LineItemChargeAmount").GetDecimal());
+            var lineSum = claim.GetProperty("LineItems").EnumerateArray()
+                .Sum(line => line.GetProperty("SV102_LineItemChargeAmount").GetDecimal());
 
-            Assert.Equal(lineSum, claim.GetProperty("clM02_TotalClaimChargeAmount").GetDecimal());
+            Assert.Equal(lineSum, claim.GetProperty("CLM02_TotalClaimChargeAmount").GetDecimal());
         }
     }
 
@@ -90,13 +90,13 @@ public class BatchGenerationTheories : IClassFixture<GovernedApiFactory>
     {
         var created = await PostBatchAsync(billCount, state, [category]);
         var claims = JsonDocument.Parse(await created.Content.ReadAsStringAsync()).RootElement;
-        var firstId = claims[0].GetProperty("id").GetString();
+        var firstId = claims[0].GetProperty("Id").GetString();
 
         var fetched = await _factory.CreateClient().GetAsync($"/api/v1/claims/{firstId}");
 
         Assert.Equal(HttpStatusCode.OK, fetched.StatusCode);
         var claim = JsonDocument.Parse(await fetched.Content.ReadAsStringAsync()).RootElement;
-        Assert.Equal(firstId, claim.GetProperty("id").GetString());
+        Assert.Equal(firstId, claim.GetProperty("Id").GetString());
     }
 
     [Theory]

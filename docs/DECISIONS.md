@@ -43,6 +43,9 @@ define. The convention itself is ADR-008.
 | [ADR-024](#adr-024) | The code catalogue is built backwards from the fee schedules | Accepted | 7 | required |
 | [ADR-025](#adr-025) | Catalogue and jurisdiction routes serve the generation form | Accepted | 7 | required |
 | [ADR-026](#adr-026) | Governance names the guardrails; the application is Translator | Accepted | 7a | required |
+| [ADR-027](#adr-027) | The frontend governance document is adopted and binding | Accepted | 8 | required |
+| [ADR-028](#adr-028) | Cross-origin access granted to the development client only | Accepted | 8 | required |
+| [ADR-029](#adr-029) | Governed timestamps are stored and returned as UTC | Accepted | 8 | required |
 
 ---
 
@@ -735,3 +738,56 @@ because it claimed a character-for-character transcription and that claim now ha
 every declared namespace under `Translator`, except the guardrail suite; and no application file
 referencing a Governance-rooted type, which is the failure a half-done rename leaves behind and
 which would compile until the old assembly stopped being produced.
+
+## ADR-027
+
+**The frontend governance document is adopted and binding.**
+Requested and approved by the project owner, 2026-08-30. Drafted by Claude Opus 5.
+
+`docs/GOVERNANCE-FRONTEND.md` governs the React client. It derives its authority from the two
+clauses of `governance.txt` Section 1 that already bind the frontend — React state models are
+downstream views of the governed entities, and React form attribute names must reflect ASC X12
+nomenclature — and fills the gaps those clauses leave. It cannot amend `governance.txt`, and
+departures from either remain ADRs here.
+
+Its Section 8 is the part that changes code: the marker convention extends to the client, so
+`Governance.Traceability.Tests` now scans `.ts` and `.tsx` alongside `.cs`, `.py` and `.bicep`. The
+alternative was a governed project with an ungoverned half, and retrofitting markers after the code
+exists is work Section 2 has already had to do once.
+
+## ADR-028
+
+**Cross-origin access is granted to the development client, and only there.**
+Claude Opus 5, 2026-08-30.
+
+The Vite dev server runs on its own origin, so a browser refuses every call it makes to this API
+until the API says otherwise. Without a grant the client cannot make a single successful request.
+
+The grant is deliberately narrow. It names `http://localhost:5173` rather than allowing any origin,
+and it is applied only when the environment is not Production. A wildcard is how a development
+convenience becomes a deployed one, and this API answers with real provider records and a ZIP export.
+
+`Content-Disposition` is exposed, because a cross-origin response hides it by default and the client
+would otherwise be unable to read the filename of the archive it just downloaded.
+
+A deployed instance needs no grant: it serves the client from its own origin, or sits behind an
+ingress that does. That is why the policy is absent in Production rather than merely narrowed.
+
+## ADR-029
+
+**Governed timestamps are stored and returned as UTC.**
+Claude Opus 5, 2026-08-30.
+
+*Consequence of ADR-002.* SQLite has no timestamp type, and EF Core reads a `DateTime` back with
+`Kind` set to `Unspecified` whatever was written. So `BHT04_TransactionSetCreationDate` went in as
+UTC and came out unmarked, and serialised as `2026-01-01T00:00:00` where the same claim before
+persistence serialised as `2026-01-01T00:00:00Z`. FIND-021 records the discovery.
+
+This is ADR-004's rule applied to a different column: the store returns what it was given. A value
+converter restores `Kind` on read. A `Local` value is converted to UTC on the way in, because that
+is a genuine change of instant and doing it once at the boundary is better than leaving every reader
+to guess.
+
+The 837 itself carries a date and a time to the minute and no zone at all, so nothing in the emitted
+file changes. What changes is that a claim which has been through the store and one which has not
+now serialise identically, which is what a client comparing them requires.
