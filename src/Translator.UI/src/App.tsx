@@ -57,18 +57,18 @@ export default function App() {
           </div>
 
           {/*
-            PROVENANCE: ADR-030 - the image is generated, and says so on its face.
+            PROVENANCE: ADR-030 - the image is a licensed photograph, and says what it is.
 
-            A photorealistic clinical scene on a page whose whole discipline is not implying clinical
-            reality needs the caption more than a drawing would, not less. It is decoration: it
-            depicts nobody, and nothing in it is data.
+            The caption is not decoration. This is a real clinical photograph on a page whose whole
+            discipline is not implying clinical reality, so it states that it illustrates nothing on
+            the page. Nothing in it is data, and no claim below relates to it.
           */}
           <figure className="relative m-0 block border-t border-accent-deep/20">
             <img
               src="/clinic.webp"
               alt=""
-              width={1408}
-              height={768}
+              width={1600}
+              height={1067}
               className="block h-56 w-full object-cover sm:h-72"
               style={{ objectPosition: 'center 40%' }}
             />
@@ -76,7 +76,7 @@ export default function App() {
               className="absolute right-0 bottom-0 rounded-tl-md bg-black/55 px-2.5 py-1 text-xs
                 text-white/90 backdrop-blur-sm"
             >
-              Illustration, generated. No real patient or clinician.
+              Stock photograph. Illustrative only — unrelated to any bill shown here.
             </figcaption>
           </figure>
         </header>

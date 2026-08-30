@@ -46,7 +46,7 @@ define. The convention itself is ADR-008.
 | [ADR-027](#adr-027) | The frontend governance document is adopted and binding | Accepted | 8 | required |
 | [ADR-028](#adr-028) | Cross-origin access granted to the development client only | Accepted | 8 | required |
 | [ADR-029](#adr-029) | Governed timestamps are stored and returned as UTC | Accepted | 8 | required |
-| [ADR-030](#adr-030) | The header image is generated, and captioned as such | Accepted | 10 | required |
+| [ADR-030](#adr-030) | The header image says what it is, whatever it is | Accepted | 10 | required |
 
 ---
 
@@ -795,27 +795,33 @@ now serialise identically, which is what a client comparing them requires.
 
 ## ADR-030
 
-**The header image is generated, and the page says so on the image itself.**
+**The header image says what it is, and what it is not.**
 Image chosen by the project owner, 2026-08-30. Caption and record by Claude Opus 5.
 
 The project owner asked for a photograph of a clinician taking a patient's blood pressure. Two
-objections were raised before it went in, and the owner's answer resolved both: the image is
-generated rather than licensed stock, so there is no licence to track, and it depicts no real
-person.
+concerns were raised before one went in: a stock photograph carries a licence this project would
+have to track, and a photorealistic clinical scene argues quietly against the page's own discipline
+of not implying clinical reality.
 
-One concern was not resolved by that and is handled here instead. The image is photorealistic, and
-it sits on a page whose whole discipline is not implying clinical reality — the example-data notice,
-ADR-024's framing of the charges, the care taken that no bill describes anything that happened. A
-convincing clinical photograph argues quietly against all of it.
+*The image changed once during the section, and the caption changed with it.* A generated image went
+in first, captioned "Illustration, generated. No real patient or clinician." The project owner then
+supplied a licensed photograph instead. That caption would have been false of the new image, so it
+was replaced rather than left: a page that spends a paragraph explaining its data describes nothing
+that happened cannot carry a caption that is itself untrue.
 
-So the caption is on the image, not beside it: *"Illustration, generated. No real patient or
-clinician."* A photorealistic image needs that more than a drawing would, not less. It is decoration
-and nothing in it is data.
+The caption now reads *"Stock photograph. Illustrative only — unrelated to any bill shown here."*
+It makes the one claim that matters and no more: nothing in the image is data, and no bill below
+relates to it.
 
-The image carries an `alt` of `""`, which is deliberate rather than an omission. It conveys no
-information a screen-reader user needs; announcing it would be noise, and the caption is available
-to anyone who wants it.
+The photograph shows hands and a sphygmomanometer. Nobody in it is identifiable, and no product
+branding is legible, which is why the earlier concern about a convincing clinical scene weighs less
+here than it did against a face-forward image.
 
-*Recorded for completeness:* the generated scene includes an incidental third-party logo on the
-blood-pressure cuff and an invented name badge. Neither is a claim about any real product or person,
-and both are artefacts of generation rather than choices.
+The `alt` is `""`, which is deliberate rather than an omission. The image conveys nothing a
+screen-reader user needs; announcing it would be noise, and the caption is there for anyone who
+wants it.
+
+*Outstanding:* the licence terms are not recorded, because they are not derivable from the file. See
+`docs/PROVENANCE.md` — the entry names what is known and marks the source as owed by the project
+owner. A licensed asset with no recorded licence is exactly the gap this project's provenance
+discipline exists to close.

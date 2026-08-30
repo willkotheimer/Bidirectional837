@@ -434,7 +434,15 @@ published API, and had only ever been proven against the engines beneath it.
 
 Image added in this section:
 
-- **`src/Translator.UI/public/clinic.webp`** — a clinician taking a patient's blood pressure,
-  generated with Google Gemini by the project owner and converted here from a 1408x768 JFIF to WebP
-  (818 KB to 110 KB). It depicts no real person, carries no licence, and is captioned on its own face
-  as generated (ADR-030).
+- **`src/Translator.UI/public/clinic.webp`** — a close-up of a clinician measuring a patient's blood
+  pressure with a manual sphygmomanometer. Supplied by the project owner as `licensed-image.jfif`,
+  2048x1366, converted here to WebP at 1600px wide (174 KB to 53 KB, quality 82).
+- Nobody in it is identifiable - the frame shows hands and an instrument - and no product branding is
+  legible. It is captioned on its own face as a stock photograph illustrating nothing on the page
+  (ADR-030).
+- **Licence: not recorded, and owed.** The filename says it is licensed and the project owner
+  supplied it as such, but the terms, the library and the licence identifier are not derivable from
+  the file and are not written down here. Every other byte of data in this repository names its
+  source; this one does not yet. It should be completed before anything is published.
+- An earlier generated image was used first and replaced. Its caption said "Illustration, generated"
+  and would have been false of this one, so it was rewritten rather than carried over.
