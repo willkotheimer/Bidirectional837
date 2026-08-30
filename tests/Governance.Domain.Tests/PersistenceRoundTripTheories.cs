@@ -1,7 +1,7 @@
 using System.Reflection;
 using Governance.Domain.Entities;
 using Governance.Domain.Persistence;
-using Governance.Domain.Tests.Corpus;
+using Governance.TestSupport;
 using Microsoft.EntityFrameworkCore;
 
 namespace Governance.Domain.Tests;

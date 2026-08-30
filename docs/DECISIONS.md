@@ -23,11 +23,19 @@ define. The convention itself is ADR-008.
 | [ADR-004](#adr-004) | Money stored as integer minor units | Accepted | 1 | required |
 | [ADR-005](#adr-005) | String length enforcement moves to the API layer | Discharged by ADR-010 | 1 | required |
 | [ADR-006](#adr-006) | One pull request per section, delivered by branch push | Accepted | 1 | not applicable |
-| [ADR-007](#adr-007) | Inherited seed tooling retained, `charges_sample.csv` outstanding | Open | 1 | not applicable |
+| [ADR-007](#adr-007) | Inherited seed tooling retained, `charges_sample.csv` outstanding | Closed by ADR-013 | 1 | not applicable |
 | [ADR-008](#adr-008) | Decision provenance is marked in code and enforced by test | Accepted | 2 | required |
 | [ADR-009](#adr-009) | Routes governance does not name | Accepted | 2 | required |
 | [ADR-010](#adr-010) | Validation annotations added to the governed DTOs | Accepted | 2 | required |
 | [ADR-011](#adr-011) | Findings are recorded in a durable register and guarded | Accepted | 2 | required |
+| [ADR-012](#adr-012) | NPI registry live by default, off in tests | Accepted | 3 | required |
+| [ADR-013](#adr-013) | Curated public HCPCS Level II catalog, no CPT | Accepted | 3 | required |
+| [ADR-014](#adr-014) | Generation is seeded and reproducible | Accepted | 3 | required |
+| [ADR-015](#adr-015) | The ephemeral store is a singleton | Accepted | 3 | required |
+| [ADR-016](#adr-016) | Ungoverned 837 elements are constants, never ambient state | Accepted | 4 | required |
+| [ADR-017](#adr-017) | One 837 file per claim, named for its control number | Accepted | 4 | required |
+| [ADR-018](#adr-018) | X12 numerics are rendered without scale and read back at it | Accepted | 4 | required |
+| [ADR-019](#adr-019) | ICD-10 codes are stored dotted and emitted undotted | Accepted | 4 | required |
 
 ---
 
@@ -295,3 +303,190 @@ ADR-008 applies to decisions. A finding marked `required` must name the test tha
 through a `PROVENANCE: FIND-NNN` comment on that test, and a marker must not cite a finding the
 register does not define. A fix that is not guarded is a fix that can silently regress, which for
 FIND-001 would mean returning to silently corrupted money.
+
+## ADR-012
+
+**The live NPI registry is queried by default and switched off in the test host.**
+Constraint set by the project owner; mechanism chosen by Claude Opus 5, 2026-08-29.
+
+Governance User Story 1.1 asks the generator to query the open-source NPI registry using the
+requested jurisdiction state, and requires that an unreachable API fall back gracefully to a mock
+state-compliant provider set.
+
+The deployed application does query the registry: `Generation:UseLiveNpiRegistry` defaults to true,
+so the governed intent holds where it matters. The test host sets it to false. Three reasons, in
+order of weight. A suite that calls a third-party service is not reproducible, and governance
+Section 4 requires recorded, repeatable runs. The User Story 1.3 timing budget of 3.0 seconds for
+500 bills would otherwise be measured partly against network latency outside our control. And CI
+must not depend on an external service being up.
+
+The live path is not left untested. `NpiRegistryProviderDirectory` is exercised against a stubbed
+transport, including the mapping of a real registry response onto the governed Loop2010AA fields.
+The fallback is exercised across every way the registry can fail in practice: 503, 500, 404, an
+empty result set, a body that will not parse, a DNS failure and a timeout. The governed phrase "if
+API is unreachable" is read broadly on purpose, because each of those leaves the generator without
+a provider.
+
+`ResilientProviderDirectory` sets the registry aside for its own lifetime after the first failure.
+A batch of 500 claims must not become 500 failed network calls, each waiting out a timeout.
+
+## ADR-013
+
+**The medical code catalog is a curated public HCPCS Level II set; CPT is excluded.**
+Claude Opus 5, 2026-08-29.
+
+Governance User Story 1.2 asks for valid medical codes from selected categories carrying published
+standard charges or deterministic fallback charges, and governance Section 2 comments the
+`SV101_2_ProcedureCode` column as "CPT / HCPCS Code".
+
+CPT is proprietary to the AMA, as the inherited provenance notes from GitHub Copilot record. The
+catalog therefore holds HCPCS Level II codes only: one letter followed by four digits, within the
+governed five-character limit. Fifteen real codes across the three categories governance names as
+examples, being Anesthesia, Physical Therapy and Cardiac. This resolves FIND-005, which recorded
+that `seed/charges_sample.csv` was referenced in three places and absent from the repository.
+
+Charges are published-style values for the catalogued codes, with a deterministic fallback for any
+code outside it, which governance explicitly permits. The fallback derives the charge from the code
+text using a stable accumulator rather than `string.GetHashCode`, because .NET randomises string
+hashing per process: a hash-derived charge would differ between runs and destroy the reproducibility
+ADR-014 depends on. The same reasoning governs the synthetic provider set.
+
+The seed corpus is embedded in the assembly rather than copied beside it, so a deployed instance
+cannot start with an empty catalog.
+
+*Limitation, recorded honestly:* fifteen codes is a demonstration corpus, not a clinical one. The
+descriptions are abbreviated and the authoritative source remains CMS. Widening the catalog is a
+data task that needs no code change, and the seed integrity theories will hold the wider set to the
+same shape.
+
+## ADR-014
+
+**Generation is seeded and reproducible.**
+Claude Opus 5, 2026-08-29.
+
+Governance User Story 1.2 asks the generator to pull codes *randomly*. Randomness and
+reproducibility are not in tension here: the generator takes a seed, and the same seed yields a
+byte-identical batch. The API supplies a fresh seed per request, so a client sees the variety
+governance asks for.
+
+Reproducibility is not a nicety. Governance Section 4 requires recorded failing runs, and a
+generated claim that fails a downstream assertion is only investigable if the batch that produced it
+can be regenerated exactly. Both directions are held by Theory: the same seed yields an identical
+batch, and different seeds do not.
+
+## ADR-015
+
+**The ephemeral store is registered as a singleton.**
+Claude Opus 5, 2026-08-29.
+
+An in-memory SQLite database exists only while a connection to it is open, and `EphemeralClaimStore`
+holds that connection for its own lifetime (ADR-002). Registered per request, the store would
+therefore discard every claim at the end of the request that created it, and the Imported Bills
+Dashboard, the ZIP export and the reversibility check would all read an empty database.
+
+The store *is* the database in this topology, so its lifetime must be the application lifetime. The
+consequence, which follows directly from the project owner decision to carry no durable persistence,
+is that claims live until the process restarts and no further: a restart is a clean slate, and a
+scaled-out deployment gives each instance its own claims. Both are recorded here rather than left to
+be discovered, and both are carried into the Bicep deployment section.
+
+## ADR-016
+
+**Every 837 element governance does not store is a constant of the writer or a function of the
+record, never ambient state.**
+Claude Opus 5, 2026-08-30.
+
+*Governed clause affected:* none is contradicted. Governance Section 2 defines the columns the
+system stores; the 005010X222A2 guide requires elements it does not name, and governance is silent
+on where those come from.
+
+The 837 needs a submitter, a receiver, an interchange control number, an interchange date and time,
+a subscriber member identifier and several structural qualifiers. Governance stores none of them.
+There are three ways to supply such an element: read it from the environment, count it, or fix it.
+Only the third is compatible with the Section 1 Zero-Mutation Rule.
+
+A control number drawn from a counter, or an interchange timestamp read from the clock, would make
+the same unedited claim export differently on every call. The governed round-trip test would then
+fail against itself, and no parser however faithful could repair it, because the varying element is
+not recoverable from the record. So the interchange date and time are derived from the stored
+BHT04, the control numbers are fixed, and the trading partner identifiers are constants a
+deployment overrides.
+
+The same reasoning forbids the opposite mistake. The database identity of a claim is a storage
+artefact with no 837 counterpart, so an importer cannot recover it; letting it reach the stream
+would mean a re-imported claim could never re-export to the file it came from.
+`Storage_identity_does_not_reach_the_stream` holds both halves: no identifier appears in the text,
+and the same governed content under fresh identities serialises identically.
+
+*Limitation, recorded honestly:* the subscriber member identifier in Loop 2010BA NM109 is a
+required element with no governed column behind it, and is emitted as the claim control number. It
+is unique per claim and stable under re-export, which is what reversibility needs, but it is a
+placeholder and not a real member identifier. A deployment that carries member identifiers needs a
+governed column for one, which is a Section 2 change and therefore the project owner's to make.
+
+## ADR-017
+
+**The archive holds one 837 file per claim, named for its governed claim control number.**
+Claude Opus 5, 2026-08-30.
+
+Governance User Story 2.2 asks for "valid individual or batched 837 files matching the database
+records", and explicitly permits either. One file per claim is chosen because it makes the Section 1
+Reversibility Guarantee checkable at the granularity the guarantee is stated at: an 837 file
+corresponds to exactly one stored record, so a mismatch names the claim it belongs to instead of
+naming a batch.
+
+Entry names lead with the control number, because that is what a user opening the archive is
+looking for, and carry the storage identity after it. Two claims may legitimately share a control
+number - a replacement claim carries the original's CLM01 under a different CLM05-3 frequency code -
+and neither may overwrite the other in the archive.
+
+Anything in the control number that a filesystem would read as structure is replaced before it
+becomes a name. An archive is extracted onto someone else's machine, and a control number is a
+governed free-text column, so a traversal or a path separator in one must not become a path.
+
+Entry timestamps are fixed rather than taken from the clock, for the reason ADR-014 gives: the same
+claims must package to the same bytes, or no export can be compared against an earlier one to show
+that nothing changed.
+
+## ADR-018
+
+**X12 numeric elements are rendered without trailing zeros and read back at the governed scale.**
+Claude Opus 5, 2026-08-30.
+
+The 5010 guide asks that a numeric element carry no insignificant trailing zeros and no trailing
+decimal point, so a charge of 1.00 is written `1`. Scale is therefore not recoverable from the text,
+and must come from somewhere else.
+
+It comes from the governed Section 2 column: `decimal(18,2)` for the two charge amounts,
+`decimal(18,4)` for the service unit count. Reading restores that scale rather than the scale the
+text happened to carry. This is the same defect FIND-002 recorded in the store, arriving at a
+different boundary: 1.00 read back as 1 changes the text of the next file written from the record,
+which is a Zero-Mutation violation even though every value compares equal.
+
+Restoring the scale is done by adding a zero of that scale, because decimal addition takes the
+larger of its operands' scales. `decimal.Round` does not do this - `decimal.Round(1m, 2)` is 1, not
+1.00 - and reaching for it here would reintroduce FIND-002 exactly.
+
+An element carrying more precision than the governed column can hold is refused rather than
+rounded. Rounding it would store an amount the file does not state, which is the FIND-001 corruption
+arriving through a different door: a well-formed file, a successful import, and the wrong money.
+
+## ADR-019
+
+**ICD-10-CM codes are stored with their decimal point and emitted without it.**
+Claude Opus 5, 2026-08-30.
+
+Governance Section 2 declares `HI01_2_PrincipalDiagnosisCode` at 10 characters and says nothing
+about format. X12 forbids the decimal point in a diagnosis element, and the seed corpus and
+generator both carry the dotted form the CDC publishes, so the two forms differ and one must be
+converted.
+
+The point always follows the third character of an ICD-10-CM code, so removing it and restoring it
+are exact inverses and the conversion is safe - but only for a code that is in the dotted form to
+begin with. FIND-011 records what happens otherwise. A code stored as `E119` would be emitted
+unchanged and read back as `E11.9`, silently changing a clinical field while producing a perfectly
+valid file.
+
+The writer therefore refuses a code that is not in canonical form rather than converting it. A loud
+failure on a malformed diagnosis is a better outcome than a quiet edit to one, and the refusal is
+what makes the round trip provable rather than merely likely.

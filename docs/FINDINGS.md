@@ -18,12 +18,17 @@ marker cites a finding this register does not define. The convention is ADR-011.
 | [FIND-002](#find-002) | Decimal scale dropped by the store | High | Fixed | 1 | required |
 | [FIND-003](#find-003) | Governed length limits unenforced by the store | High | Mitigated | 1 | required |
 | [FIND-004](#find-004) | Record validation silently disabled, 500 instead of 400 | High | Fixed | 2 | required |
-| [FIND-005](#find-005) | Inherited seed loader hides a missing data file | Medium | Open | 1 | not applicable |
+| [FIND-005](#find-005) | Inherited seed loader hides a missing data file | Medium | Fixed | 1 | required |
 | [FIND-006](#find-006) | Naming guard rejected valid X12 segment identifiers | Low | Fixed | 1 | required |
 | [FIND-007](#find-007) | Traceability scanner under-detected multi-citation markers | Low | Fixed | 2 | required |
+| [FIND-008](#find-008) | Inherited provider seed carried invalid NPIs | Medium | Fixed | 3 | required |
+| [FIND-009](#find-009) | Routing test conflated a missing route with a missing resource | Low | Fixed | 3 | required |
+| [FIND-010](#find-010) | Governed timing budget met, but margin is thin and not in generation | Low | Mitigated | 3 | required |
+| [FIND-011](#find-011) | Undotted diagnosis code would round-trip into a different code | High | Mitigated | 4 | required |
+| [FIND-012](#find-012) | Delimiter guard rejected the segment that declares the delimiters | Low | Fixed | 4 | required |
 
-A finding whose Guard reads `not applicable` is one no test yet holds shut. FIND-005 is the only
-such entry, and it is open: the guard arrives with the fix, in the Feature 1 section.
+A finding whose Guard reads `not applicable` is one no test yet holds shut. There are none at
+present: every recorded finding is named by a test that fails if it returns.
 
 Severity is judged by consequence to the governance Section 1 Reversibility Guarantee and to data
 correctness, not by effort to fix.
@@ -151,9 +156,20 @@ charges or a deterministic fallback, and requires that CLM02 equal the sum of th
 amounts. A silently empty charge table would produce claims with zero charges that still satisfy
 that sum, so the generator would appear correct while emitting worthless bills.
 
-*Status:* deliberately deferred, recorded in ADR-007. It is resolved in the Feature 1 section, where
-charge data is first genuinely needed. The existence check should also be tightened: a seed file
-named in the loader and missing from disk should fail loudly rather than be skipped.
+*Resolution:* closed in the Feature 1 section, where charge data was first genuinely needed.
+`seed/charges_sample.csv` now exists, alongside `seed/hcpcs_categories.csv`, holding the curated
+public HCPCS Level II corpus recorded in ADR-013.
+
+*Guard:* `SeedIntegrityTheories.Seed_file_referenced_by_the_loader_exists` reads the file names out
+of `scripts/load_to_sqlite.py` itself rather than hard-coding them, so adding a reference to the
+loader without adding the file fails the build. A companion Theory asserts each file carries rows
+beneath its header, because a file that exists and is empty would satisfy the loader just as
+silently.
+
+*Residual risk:* the loader still guards each load with an existence check, so it remains capable of
+skipping a file in silence if run against a tree where one is missing. The guard above prevents that
+tree from being committed, which is the cheaper place to enforce it; tightening the Python loader to
+fail loudly would be a belt-and-braces improvement rather than a fix.
 
 ## FIND-006
 
@@ -190,3 +206,151 @@ decisions alongside a governed section.
 
 *Guard:* `DecisionProvenanceTheories.Decision_marked_as_code_bearing_appears_in_the_source`, which
 detects ADR-003 through exactly the multi-citation marker that previously defeated it.
+
+## FIND-008
+
+**The inherited provider seed carried NPIs that fail the NPI check digit.**
+Medium. Fixed. Discovered 2026-08-29 by a Theory written against the newly implemented check-digit
+rule, and confirmed against the real data before being recorded.
+
+`seed/providers_sample.json` carried the identifiers `1234567890` and `9876543210`. Both are ten
+digits, and both are invalid: the final digit of an NPI is a Luhn check digit computed over the
+identifier prefixed with 80840, the ANSI issuer prefix assigned to CMS. The correct values are
+`1234567893` and `9876543213`. In both cases the inherited check digit was 0 where it should be 3.
+
+*Why it matters:* the file is loaded by `scripts/load_to_sqlite.py` into the `providers` table and
+was the obvious source of provider data for the generator. Governance User Story 1.1 requires a
+*valid* NPI in Loop2010AA. Ten digits that look like an NPI but fail the check digit would produce
+claims that pass every internal test and are rejected on arrival at a clearinghouse, with the
+failure surfacing as far as possible from its cause.
+
+*Resolution:* both identifiers corrected in place. The check-digit rule now lives in the domain, as
+a property of the governed `Loop2010AA_NM109` field, and the synthetic provider directory mints
+identifiers through it rather than formatting arbitrary digits.
+
+*Guard:* `SeedIntegrityTheories.Every_npi_in_a_provider_seed_file_satisfies_the_check_digit`, and
+`ClaimGeneratorInvariantTheories.Every_billing_provider_carries_a_valid_npi` over every generated
+claim.
+
+*Reportable as:* plausible-looking test data that is quietly wrong. Nothing in the inherited
+repository was checking it, and a length check, which is the obvious validation to write, would
+have passed it.
+
+## FIND-009
+
+**A contract test proved something weaker than it claimed, and broke when the code got better.**
+Low. Fixed. Discovered 2026-08-29 when implementing a genuine 404.
+
+`Published_operation_is_routed_by_the_application` asserted that each published operation did not
+answer 404. While every operation returned 501, that was a fair proxy for "the route exists". Once
+`GET /api/v1/claims/{id}` was implemented and correctly answered 404 for an absent claim, the test
+failed, not because routing had regressed but because the assertion could not tell "this route does
+not exist" apart from "this resource does not exist".
+
+*Why it matters:* the tempting fix is to assert a narrower status, which preserves the ambiguity
+rather than removing it. More importantly it is a test that passed for the wrong reason: it was
+never measuring routing, only the absence of one particular status.
+
+*Resolution:* routing is now read from the `EndpointDataSource` of the application, comparing the
+published contract against the route patterns the application actually registers, with constraints
+normalised so `{id:guid}` and `{id}` compare equal. The assertion now measures exactly what it
+claims, and status-code behaviour is asserted separately by the tests that care about it.
+
+*Guard:* `ApiContractConformanceTheories.Published_operation_is_routed_by_the_application`.
+
+## FIND-010
+
+**The governed 3.0 second budget is met, but almost none of it is spent generating.**
+Low. Mitigated. Measured 2026-08-29 while implementing User Story 1.3.
+
+Governance User Story 1.3 requires that "generation of 500 bills finishes in under 3.0 seconds".
+Measured on the build machine, with the batch of 500 claims carrying 1,443 service lines:
+
+| Stage | Time |
+|-------|------|
+| Generation alone, in process | **0.011 s** |
+| Full request: generate, persist, serialise, over HTTP | **1.6 - 2.4 s** |
+| First request of a process (JIT, DI, schema creation) | 7.4 s |
+
+Generation is roughly 0.4% of the governed budget. The remainder is EF Core persisting 500 headers
+and 1,443 lines, and serialising the same graph back to the client.
+
+*Why it matters:* the literal governed requirement passes with about a 280-fold margin, and the
+test asserts the stricter end-to-end reading instead, which passes with roughly a third of the
+budget to spare. That is a real but thin margin, and it lives entirely in work governance did not
+name. A slower CI machine could breach the stricter assertion while the governed requirement
+remains comfortably met, and the failure would look like a generator regression when it would not
+be one.
+
+*Mitigation applied:* EF change detection is switched off for the insert. Change detection is
+quadratic in tracked entities and there is nothing to detect for a graph that is entirely new; this
+took a typical run from about 2.4 s to about 1.9 s.
+
+*Residual risk, and what to do if it bites:* the first request of a process costs 7.4 s, which no
+governed budget covers because governance measures generation rather than cold start. If the
+end-to-end assertion becomes flaky on slower hardware, the honest fixes in order are: assert the
+governed reading (generation alone) and measure the end-to-end figure separately as a tracked
+number rather than a pass/fail gate; or reduce the response payload, since returning all 500 claims
+in full is a client convenience rather than a governed requirement.
+
+*Deliberately not done:* the budget was not met by weakening what is measured. The end-to-end
+reading is the stricter one and it is what the suite asserts.
+
+*Guard:* `BatchGenerationTheories.Governed_batch_size_completes_within_its_time_budget`.
+
+## FIND-011
+
+**A diagnosis code stored without its decimal point would round-trip into a different code.**
+High. Mitigated. Discovered 2026-08-30 while specifying the HI segment, before the writer existed.
+
+X12 forbids the decimal point in a diagnosis element, so `E11.9` is emitted as `E119`. The point
+always follows the third character, so restoring it on the way back is deterministic - for a code
+that carried one. A code stored as `E119` would be emitted unchanged and read back as `E11.9`.
+
+*Why it matters:* the file produced is perfectly valid, the import succeeds, and the stored
+diagnosis is a different diagnosis. It is the FIND-001 pattern applied to a clinical field rather
+than a monetary one: a Zero-Mutation breach that nothing downstream can detect, because nothing
+downstream knows what the code was supposed to be. Governance Section 2 declares the column only as
+ten characters, so the schema does not exclude the undotted form.
+
+*Resolution:* ADR-019. The writer refuses a code that is not in the canonical dotted form rather
+than converting it, so the mutation cannot occur silently.
+
+*Residual risk, and why this is Mitigated rather than Fixed:* nothing enforces canonical form at the
+persistence boundary. Every write path that exists today produces canonical codes - the generator
+draws from a dotted seed corpus, and the Feature 3 parser will restore the point on the way in - but
+a future path that stored `E119` would make that claim unexportable, failing loudly at export
+instead of at the point the bad value was written. Moving the constraint onto the governed column
+would settle it, and that is a Section 2 change, which is the project owner's to make.
+
+*Guard:* `CanonicalElementTheories.Diagnosis_code_that_is_not_in_the_governed_canonical_form_is_refused`,
+alongside the round-trip Theory over the corpus diagnoses.
+
+*Reportable as:* a mutation that a schema review could not have found. The governed column
+declaration is correct, the value stored in it is a real ICD-10-CM code, and the round trip still
+changes it, because the standard and the database disagree about one character.
+
+## FIND-012
+
+**The delimiter guard rejected the one segment whose job is to declare the delimiters.**
+Low. Fixed. Discovered 2026-08-30 by the first green run of the serializer.
+
+`No_emitted_element_carries_a_delimiter_character` asserted that no element anywhere in the
+interchange carries an X12 delimiter, and failed on ISA - correctly, in the sense that ISA11 is the
+repetition separator and ISA16 the component separator, each carried as its own literal value.
+
+*Why it matters:* the guard is real and worth keeping. An unescaped separator inside a name or an
+address splits one element into two and shifts every element after it, which is how an EDI file
+becomes silently wrong rather than loudly invalid. A guard that fails on correct output gets
+weakened or deleted, and the protection is lost with it. The same failure mode is recorded in
+FIND-006, where a naming guard rejected valid X12 segment identifiers.
+
+*Resolution:* the Theory is now
+`No_emitted_element_outside_the_ISA_header_carries_a_delimiter_character`, and the exemption is
+stated as a property of ISA rather than as a concession. The writer is unchanged: it was correct.
+
+*Guard:* the renamed Theory itself, which still asserts the rule over every other segment and
+refuses to pass vacuously.
+
+*Reportable as:* a test defect, not a product defect - but one worth recording, because the tempting
+fix was to make the writer wrong to keep the test green.

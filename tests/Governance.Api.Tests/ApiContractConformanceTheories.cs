@@ -1,7 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Governance.Api.Tests;
 
@@ -15,11 +17,11 @@ namespace Governance.Api.Tests;
 /// Whether the logic behind an operation exists yet is a separate question, settled in later
 /// sections; an operation whose service is still outstanding answers 501, never 404.
 /// </summary>
-public class ApiContractConformanceTheories : IClassFixture<WebApplicationFactory<Program>>
+public class ApiContractConformanceTheories : IClassFixture<GovernedApiFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly GovernedApiFactory _factory;
 
-    public ApiContractConformanceTheories(WebApplicationFactory<Program> factory) => _factory = factory;
+    public ApiContractConformanceTheories(GovernedApiFactory factory) => _factory = factory;
 
     public static IEnumerable<object[]> Operations() => PublishedContract.Operations();
     public static IEnumerable<object[]> Paths() => PublishedContract.Paths();
@@ -33,16 +35,42 @@ public class ApiContractConformanceTheories : IClassFixture<WebApplicationFactor
         ["/api/v2/claims"],
     ];
 
+    /// <summary>
+    /// PROVENANCE: FIND-009 - routing is read from the application's endpoint table rather than
+    /// inferred from a status code. Probing over HTTP conflated "this route does not exist" with
+    /// "this resource does not exist", so implementing a genuine 404 broke a test that was only
+    /// ever asking whether the route was published.
+    /// </summary>
     [Theory]
     [MemberData(nameof(Operations))]
-    public async Task Published_operation_is_routed_by_the_application(string method, string path)
+    public void Published_operation_is_routed_by_the_application(string method, string path)
     {
-        var client = _factory.CreateClient();
+        var routed = RoutedOperations(_factory.Services);
 
-        var response = await client.SendAsync(new HttpRequestMessage(new HttpMethod(method), Concretise(path)));
+        Assert.Contains((method, path), routed);
+    }
 
-        Assert.NotEqual(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.NotEqual(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+    /// <summary>Every (method, path) the application actually routes, normalised to contract form.</summary>
+    private static HashSet<(string Method, string Path)> RoutedOperations(IServiceProvider services)
+    {
+        var endpoints = services.GetRequiredService<EndpointDataSource>().Endpoints;
+        var routed = new HashSet<(string, string)>();
+
+        foreach (var endpoint in endpoints.OfType<RouteEndpoint>())
+        {
+            var pattern = endpoint.RoutePattern.RawText;
+            if (pattern is null) continue;
+
+            // "api/v1/claims/{id:guid}" and "/api/v1/claims/{id}" describe the same published path.
+            var normalised = "/" + Regex.Replace(pattern, @"\{(\w+)(:[^}]+)?\}", "{$1}").TrimStart('/');
+
+            foreach (var verb in endpoint.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods ?? [])
+            {
+                routed.Add((verb.ToUpperInvariant(), normalised));
+            }
+        }
+
+        return routed;
     }
 
     [Theory]
@@ -133,7 +161,4 @@ public class ApiContractConformanceTheories : IClassFixture<WebApplicationFactor
         Assert.Equal(expectRejection, response.StatusCode == HttpStatusCode.BadRequest);
     }
 
-    /// <summary>Substitutes a concrete value for any path template parameter.</summary>
-    private static string Concretise(string path) =>
-        path.Replace("{id}", Guid.Empty.ToString());
 }

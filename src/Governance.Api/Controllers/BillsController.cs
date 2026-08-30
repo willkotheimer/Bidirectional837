@@ -1,4 +1,7 @@
+using Governance.Api.Mapping;
 using Governance.Contracts.DTOs;
+using Governance.Domain.Persistence;
+using Governance.Generation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Governance.Api.Controllers;
@@ -7,16 +10,28 @@ namespace Governance.Api.Controllers;
 /// PROVENANCE: GOVERNANCE-4 - "API Contracts First: OpenAPI specifications (swagger.json) and C#
 /// API controllers must be fully defined before building underlying service logic."
 ///
-/// The route, request contract, and every response this operation can produce are defined here and
-/// published in docs/api/swagger.json. The generation engine beneath it is Feature 1's deliverable,
-/// so the operation answers 501 until that section lands. It never answers 404: the contract exists
-/// from this section onward, and only its implementation is outstanding.
+/// The route, request contract, and every response this operation can produce were published in
+/// docs/api/swagger.json before the generation engine existed. The engine now stands behind it.
 /// </summary>
 [ApiController]
 [Route("api/v1/bills")]
 [Produces("application/json")]
 public class BillsController : ControllerBase
 {
+    private readonly SyntheticClaimGenerator _generator;
+    private readonly IMedicalCodeCatalog _codeCatalog;
+    private readonly EphemeralClaimStore _store;
+
+    public BillsController(
+        SyntheticClaimGenerator generator,
+        IMedicalCodeCatalog codeCatalog,
+        EphemeralClaimStore store)
+    {
+        _generator = generator;
+        _codeCatalog = codeCatalog;
+        _store = store;
+    }
+
     /// <summary>
     /// Generates a batch of synthetic claims (governance User Story 1.3).
     /// </summary>
@@ -28,6 +43,46 @@ public class BillsController : ControllerBase
     [HttpPost("batch-generate")]
     [ProducesResponseType(typeof(List<ClaimHeaderDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public IActionResult BatchGenerate([FromBody] BatchGenerationRequestDto request)
-        => StatusCode(StatusCodes.Status501NotImplemented);
+    public async Task<IActionResult> BatchGenerate(
+        [FromBody] BatchGenerationRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        // A category with no codes behind it would silently yield claims with no service lines,
+        // which would satisfy the CLM02 sum invariant while being worthless. Refuse it instead.
+        var unknown = request.MedicalCodeCategories
+            .Where(category => _codeCatalog.CodesIn(category).Count == 0)
+            .ToList();
+
+        if (unknown.Count > 0)
+        {
+            ModelState.AddModelError(
+                nameof(request.MedicalCodeCategories),
+                $"No medical codes are catalogued for: {string.Join(", ", unknown)}. " +
+                $"Known categories are: {string.Join(", ", _codeCatalog.Categories)}.");
+
+            return ValidationProblem(ModelState);
+        }
+
+        var claims = await _generator.GenerateAsync(
+            new BatchGenerationRequest(
+                request.BillCount,
+                request.JurisdictionState,
+                request.MedicalCodeCategories,
+                Seed: Random.Shared.Next()),
+            cancellationToken);
+
+        await using (var context = _store.CreateContext())
+        {
+            // A governed batch is 500 claims carrying up to 2,500 service lines. Change detection
+            // is quadratic in tracked entities, and these are all freshly constructed and known to
+            // be new, so there is nothing for it to detect. Governance User Story 1.3 allows 3.0
+            // seconds for the whole operation; leaving this on spends most of that budget here.
+            context.ChangeTracker.AutoDetectChangesEnabled = false;
+
+            context.Claims.AddRange(claims);
+            await context.SaveChangesAsync(cancellationToken);
+        }
+
+        return StatusCode(StatusCodes.Status201Created, claims.Select(ClaimMapper.ToDto).ToList());
+    }
 }

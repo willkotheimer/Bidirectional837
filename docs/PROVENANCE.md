@@ -101,3 +101,65 @@ data is deterministic and synthetic, contains no PHI, and is generated in-proces
 - FIND-005 is the one finding carrying no guard, and is recorded as Open rather than quietly
   omitted: the inherited seed loader hides a missing charge file behind an existence check. Its
   guard arrives with its fix, in the Feature 1 section.
+
+### Section 3 — Feature 1, the synthetic bill batch generator (2026-08-29)
+
+- Implemented governance Feature 1: provider acquisition (User Story 1.1), procedure code and charge
+  assignment (1.2), and bulk generation (1.3). The `POST /api/v1/bills/batch-generate` operation
+  published in Section 2 now has an engine behind it, and `GET /api/v1/claims` and
+  `GET /api/v1/claims/{id}` read what it produced.
+- Recorded RED: 187 failed / 509 passed (`docs/tdd-evidence/section-3-red.txt`). Recorded GREEN:
+  710 passed / 0 failed (`docs/tdd-evidence/section-3-green.txt`).
+- Governed acceptance criteria are asserted as invariants over every generated claim rather than as
+  spot checks: CLM02 equals the sum of its SV102 line amounts, codes match the HCPCS pattern and
+  come from a requested category, every provider carries a check-digit-valid NPI in the requested
+  jurisdiction, line numbers run sequentially from one, and a seed reproduces a batch exactly.
+- The NPI check-digit rule is implemented in the domain, as a property of the governed
+  Loop2010AA_NM109 field, and verified against the published worked example.
+- Three findings recorded: FIND-008, invalid NPIs in the inherited provider seed, now corrected;
+  FIND-009, a routing test that proved something weaker than it claimed; and FIND-010, the
+  decomposition of the User Story 1.3 timing budget.
+- FIND-005 and ADR-007 are closed. `seed/charges_sample.csv` now exists alongside
+  `seed/hcpcs_categories.csv`, and a Theory reads the file names out of the Python loader itself so
+  a reference without a file fails the build.
+- Data provenance: the code catalog is 15 real HCPCS Level II codes across the three categories
+  governance names. CPT is excluded as proprietary to the AMA, per the inherited Copilot notes.
+  Descriptions are abbreviated; CMS remains the authoritative source. No PHI is involved: subscriber
+  names are drawn from a synthetic list and no real patient data enters the system.
+- The live NPI registry is queried by the deployed application and switched off in the test host, so
+  the suite is deterministic and no governed timing budget is measured against a third-party
+  service (ADR-012).
+
+### Section 4 — Feature 2, the 837 export and archival engine (2026-08-30)
+
+- Implemented governance Feature 2: EDI 837 serialisation (User Story 2.1) and ZIP packaging
+  (User Story 2.2). `GET /api/v1/claims/export-zip`, published in Section 2, now has an engine
+  behind it and no longer answers 501.
+- Recorded RED: 383 failed / 741 passed (`docs/tdd-evidence/section-4-red.txt`). Recorded GREEN:
+  1130 passed / 0 failed (`docs/tdd-evidence/section-4-green.txt`).
+- The six segments User Story 2.1 names — ISA, GS, ST, BHT, CLM, SE — each have their own Theory
+  asserted over the whole claim corpus. The 5010 syntax rules are asserted as structure rather than
+  as spot checks: envelopes nest and agree at both ends, GE01 and IEA01 state true counts, SE01
+  counts the segments it closes, segments arrive in guide order, and no element outside the ISA
+  header carries a delimiter.
+- Two invariants exist solely to protect the Section 1 Reversibility Guarantee, and they constrain
+  the writer more than the standard does. Serialising the same claim twice must yield the same
+  bytes, which forbids reading the clock or a counter for any element; and the database identity of
+  a claim must not reach the stream, because an importer cannot recover a Guid. Both are recorded as
+  ADR-016.
+- The tests measure the writer with a reader written independently of the ingestion parser, which is
+  a Feature 3 deliverable. A writer measured by a reader built to match it agrees with itself about
+  any shared misreading of the standard and proves nothing about reversibility.
+- Two findings recorded. FIND-011: a diagnosis code stored without its decimal point would
+  round-trip into a different code, mitigated by refusing it rather than converting it, with the
+  residual risk stated. FIND-012: the delimiter guard rejected ISA, the one segment whose purpose is
+  to declare the delimiters — a test defect, recorded rather than quietly fixed, because the
+  tempting repair was to make the writer wrong.
+- The claim corpus moved to `tests/Governance.TestSupport` so the EDI, persistence and API suites
+  measure against the same deterministic claims rather than against corpora that could drift apart.
+- Verified outside the suite as well as inside it: the running application was driven end to end,
+  a batch generated over HTTP and the archive downloaded and unpacked, and the emitted interchange
+  read by eye against the guide.
+- Data provenance: no new external data. No PHI: the corpus is synthetic and generated in process,
+  and the trading partner identifiers in the envelope are constants of this build, disclosed in
+  ADR-016.

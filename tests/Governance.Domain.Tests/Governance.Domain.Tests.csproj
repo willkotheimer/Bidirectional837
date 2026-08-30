@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Governance.Domain\Governance.Domain.csproj" />
+    <ProjectReference Include="..\Governance.TestSupport\Governance.TestSupport.csproj" />
   </ItemGroup>
 
 </Project>

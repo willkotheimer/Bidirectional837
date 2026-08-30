@@ -1,6 +1,6 @@
 using Governance.Domain.Entities;
 
-namespace Governance.Domain.Tests.Corpus;
+namespace Governance.TestSupport;
 
 /// <summary>
 /// Deterministic corpus of governed claims used as Theory data. Deterministic by design:
