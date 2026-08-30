@@ -42,6 +42,22 @@ public class ClaimsDbContext : DbContext
         modelBuilder.Entity<ClaimLineItem>()
             .Property(l => l.SV104_ServiceUnitCount)
             .HasConversion(MinorUnits(4));
+
+        // PROVENANCE: ADR-029 - governed timestamps are stored and returned as UTC.
+        //
+        // PROVENANCE: FIND-021 - SQLite has no timestamp type and EF Core reads a DateTime back with
+        // Kind Unspecified, so a value written as Utc returned as Unspecified. Same instant, but it
+        // serialises as "2026-01-01T00:00:00" instead of "2026-01-01T00:00:00Z", and a claim that
+        // had been through the store no longer matched the claim that had not.
+        //
+        // This is ADR-004's rule in a different column: the store returns what it was given. A Local
+        // value is converted on the way in, because that is a real change of instant and doing it
+        // once at the boundary is better than leaving it to whoever reads the row.
+        modelBuilder.Entity<ClaimHeader>()
+            .Property(c => c.BHT04_TransactionSetCreationDate)
+            .HasConversion(new ValueConverter<DateTime, DateTime>(
+                written => written.Kind == DateTimeKind.Local ? written.ToUniversalTime() : written,
+                stored => DateTime.SpecifyKind(stored, DateTimeKind.Utc)));
     }
 
     /// <summary>

@@ -87,25 +87,25 @@ public class ExportZipTheories : IClassFixture<GovernedApiFactory>
 
         foreach (var claim in stored.EnumerateArray())
         {
-            var controlNumber = claim.GetProperty("clM01_ClaimControlNumber").GetString()!;
+            var controlNumber = claim.GetProperty("CLM01_ClaimControlNumber").GetString()!;
             var candidates = byControlNumber[controlNumber].ToList();
 
             Assert.NotEmpty(candidates);
 
             var edi = candidates.Single(text =>
                 X12TestReader.Single(text, "BHT")[3] ==
-                claim.GetProperty("bhT03_ClaimSubmitterTransactionId").GetString());
+                claim.GetProperty("BHT03_ClaimSubmitterTransactionId").GetString());
 
             Assert.Equal(
-                claim.GetProperty("clM02_TotalClaimChargeAmount").GetDecimal(),
+                claim.GetProperty("CLM02_TotalClaimChargeAmount").GetDecimal(),
                 decimal.Parse(X12TestReader.Single(edi, "CLM")[2]));
 
             Assert.Equal(
-                claim.GetProperty("loop2010AA_NM109_BillingProviderNpi").GetString(),
+                claim.GetProperty("Loop2010AA_NM109_BillingProviderNpi").GetString(),
                 X12TestReader.All(edi, "NM1").Single(nm1 => nm1[1] == "85")[9]);
 
             Assert.Equal(
-                claim.GetProperty("lineItems").GetArrayLength(),
+                claim.GetProperty("LineItems").GetArrayLength(),
                 X12TestReader.All(edi, "SV1").Count);
         }
     }

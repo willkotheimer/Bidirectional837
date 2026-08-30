@@ -4,7 +4,27 @@ using Translator.Generation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+// PROVENANCE: FIND-020 - serialise with the names the DTOs declare, not a naming policy's idea of
+// them. The default camelCase policy lowercases the leading character of a name, and on a governed
+// column beginning with an acronym that produces clM02_, bhT03_, hI01_2_. Governance Section 1
+// requires ASC X12 nomenclature to reach the DTOs and the React forms; those manglings are not it,
+// and they disagreed with docs/api/swagger.json, which publishes the governed names.
+//
+// Null is the policy: leave the name exactly as written. Query strings and route values are
+// unaffected; this governs the JSON body only.
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
+
+// PROVENANCE: ADR-028 - the browser client is served from its own origin in development, so it
+// cannot call this API without an explicit grant. The grant is named, scoped to the Vite dev server
+// and enabled only outside Production, because a wildcard origin is how a development convenience
+// becomes a deployed one.
+builder.Services.AddCors(options => options.AddPolicy(DevelopmentClientCors, policy => policy
+    .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .WithExposedHeaders("Content-Disposition")));
 
 // The OpenAPI document is part of the governed deliverable (governance Section 4), not a
 // development convenience, so it is served in every environment rather than only in Development.
@@ -73,6 +93,13 @@ var app = builder.Build();
 
 app.MapOpenApi();
 
+// PROVENANCE: ADR-028 - development only. A deployed instance serves the client from its own origin
+// or is fronted by an ingress that does, so it needs no grant and is given none.
+if (!app.Environment.IsProduction())
+{
+    app.UseCors(DevelopmentClientCors);
+}
+
 // No UseHttpsRedirection: TLS terminates at the Azure ingress in the deployed topology, and an
 // in-process redirect would make the served OpenAPI document unreachable to the test host.
 
@@ -83,4 +110,8 @@ app.MapControllers();
 app.Run();
 
 /// <summary>Exposed so the test host can boot the real application rather than a stand-in.</summary>
-public partial class Program;
+public partial class Program
+{
+    /// <summary>The named CORS policy for the development client (ADR-028).</summary>
+    public const string DevelopmentClientCors = "DevelopmentClient";
+}

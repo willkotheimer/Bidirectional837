@@ -28,6 +28,7 @@ two, or if a section reaches `docs/DECISIONS.md` or `docs/FINDINGS.md` without r
 | 6 | Provider data from a distilled NPPES snapshot | 383 | 1413 | 1815 | 0 | `00640a6` |
 | 7 | Priced code catalogue and the routes that serve it | 16 | 1862 | 1889 | 0 | `fbb541b` |
 | 7a | Governance names the guardrails; the application is Translator | 119 | 1902 | 2026 | 0 | `f7dfb7e` |
+| 8 | Frontend governance, and the wire-naming defect it found | 37 | 2039 | 2085 | 0 | `f503b51` |
 
 The GREEN commit is not recorded, because it cannot be: a row is written by the commit that turns
 its own section green, so that commit cannot carry its own hash. FIND-013 records the discovery. It
@@ -79,6 +80,18 @@ The largest RED run so far. Two of the failures were again traceability, for ADR
 The run also settled the shape of the writer: the Theories requiring that the same claim serialise
 to the same bytes, and that storage identity never reach the stream, are what forbid reading the
 clock or a counter for any element the standard requires and governance does not store.
+
+### Section 8 — Frontend governance, and the wire-naming defect it found
+
+The RED run began as a documentation section and became a defect section. Drafting the frontend
+governance found FIND-020: the contract publishes CLM02_TotalClaimChargeAmount and the application
+served clM02_TotalClaimChargeAmount, so the conformance suite's own Theories encoded the mangling.
+
+Fixing it uncovered two more, both through the round-trip journey Theories added mid-section at the
+project owner's request. FIND-021: the store returned a DateTime with its Kind lost, so the same
+instant serialised two ways. FIND-022: batch generation returned the objects it had generated while
+import returned what the store held, so a claim's representation depended on which route produced
+it - the comparison the two-tab client is built to make.
 
 ### Section 7a — Governance names the guardrails; the application is Translator
 

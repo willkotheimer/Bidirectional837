@@ -41,10 +41,10 @@ public class ImportAndReversibilityTheories : IClassFixture<GovernedApiFactory>
         Assert.Equal(1, created.GetArrayLength());
 
         var imported = created[0];
-        Assert.Equal(claim.CLM01_ClaimControlNumber, imported.GetProperty("clM01_ClaimControlNumber").GetString());
-        Assert.Equal(claim.CLM02_TotalClaimChargeAmount, imported.GetProperty("clM02_TotalClaimChargeAmount").GetDecimal());
-        Assert.Equal(claim.HI01_2_PrincipalDiagnosisCode, imported.GetProperty("hI01_2_PrincipalDiagnosisCode").GetString());
-        Assert.Equal(claim.LineItems.Count, imported.GetProperty("lineItems").GetArrayLength());
+        Assert.Equal(claim.CLM01_ClaimControlNumber, imported.GetProperty("CLM01_ClaimControlNumber").GetString());
+        Assert.Equal(claim.CLM02_TotalClaimChargeAmount, imported.GetProperty("CLM02_TotalClaimChargeAmount").GetDecimal());
+        Assert.Equal(claim.HI01_2_PrincipalDiagnosisCode, imported.GetProperty("HI01_2_PrincipalDiagnosisCode").GetString());
+        Assert.Equal(claim.LineItems.Count, imported.GetProperty("LineItems").GetArrayLength());
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ public class ImportAndReversibilityTheories : IClassFixture<GovernedApiFactory>
         var listed = JsonDocument.Parse(await client.GetStringAsync("/api/v1/claims")).RootElement;
 
         Assert.Equal(1, listed.GetArrayLength());
-        Assert.Equal(claim.CLM01_ClaimControlNumber, listed[0].GetProperty("clM01_ClaimControlNumber").GetString());
+        Assert.Equal(claim.CLM01_ClaimControlNumber, listed[0].GetProperty("CLM01_ClaimControlNumber").GetString());
     }
 
     /// <summary>
@@ -100,17 +100,17 @@ public class ImportAndReversibilityTheories : IClassFixture<GovernedApiFactory>
 
         foreach (var claim in claims.EnumerateArray())
         {
-            var id = claim.GetProperty("id").GetString();
+            var id = claim.GetProperty("Id").GetString();
             var verdict = await receiver.PostAsync($"/api/v1/claims/{id}/verify-reversibility", null);
 
             Assert.Equal(HttpStatusCode.OK, verdict.StatusCode);
 
             var report = JsonDocument.Parse(await verdict.Content.ReadAsStringAsync()).RootElement;
 
-            Assert.True(report.GetProperty("ediTextIsIdentical").GetBoolean());
-            Assert.True(report.GetProperty("recordIsIdentical").GetBoolean(),
-                report.GetProperty("differences").ToString());
-            Assert.Equal(0, report.GetProperty("differences").GetArrayLength());
+            Assert.True(report.GetProperty("EdiTextIsIdentical").GetBoolean());
+            Assert.True(report.GetProperty("RecordIsIdentical").GetBoolean(),
+                report.GetProperty("Differences").ToString());
+            Assert.Equal(0, report.GetProperty("Differences").GetArrayLength());
         }
     }
 
@@ -130,7 +130,7 @@ public class ImportAndReversibilityTheories : IClassFixture<GovernedApiFactory>
 
         var response = await UploadAsync(client, Encoding.UTF8.GetBytes(interchange), "claim.837");
         var created = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement[0];
-        var id = created.GetProperty("id").GetString();
+        var id = created.GetProperty("Id").GetString();
 
         var fetched = JsonDocument.Parse(await client.GetStringAsync($"/api/v1/claims/{id}")).RootElement;
 

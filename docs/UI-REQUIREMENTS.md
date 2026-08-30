@@ -9,7 +9,8 @@ These are requirements, not decisions. Decisions taken in building against them 
 
 ## Stack
 
-- **Vite.** React with the Vite dev server and build.
+- **Vite.** React with the Vite dev server and build. The project is `src/Translator.UI`.
+- **`fetch`**, not axios.
 - **The APIs already built.** No new server behaviour is assumed by this document except where
   *Gaps in the published contract* below says otherwise, and each of those needs an ADR before it is
   added, because governance Section 5 names only two routes and ADR-009 governs the rest.
@@ -18,42 +19,117 @@ These are requirements, not decisions. Decisions taken in building against them 
 
 ## Persistence
 
-Nothing persists beyond the table on screen. No local storage, no session restore, no state kept
-across a page refresh. The only client state worth keeping is what the current table is showing.
+**Local storage is the only thing that ever saves a bill, and it clears on page load and refresh.**
 
-This sits with ADR-015 rather than against it: the store is already ephemeral and a restart is
-already a clean slate, so a client that remembered more than the server does would be showing
-claims that no longer exist.
+So the effect is a clean slate every time the page opens, and the mechanism is one named place rather
+than component state. Both tabs read and write the same store, which is why it exists: the
+837 → Model table and the Model → 837 table are two views over one working set, not two islands.
 
-## Bill creation
+Rules that follow from it:
+
+- **Clearing happens before the first read**, at startup, not on unload. An unload handler does not
+  run reliably — a crashed tab, a killed process or a hard refresh can all skip it, and the next load
+  would then show bills from a previous session.
+- **Every access is wrapped.** Local storage throws rather than returning null in a private window or
+  where site data is blocked, and the page must still work with no store at all.
+- **Nothing else persists.** No session storage, no IndexedDB, no cookies, no restore of form state.
+
+This agrees with the server rather than merely being tidy: ADR-015 makes the store ephemeral and a
+process restart a clean slate, so a client remembering more than the server does would show claims
+that no longer exist.
+
+*Recorded honestly:* bills do briefly exist on disk in the browser profile, between being written and
+the next page load clearing them. That is acceptable here and would not be everywhere — subscriber
+names are drawn from a synthetic list and no real patient data enters the system, so there is no PHI
+to leak. If that ever stops being true, this rule stops being safe.
+
+## Shape
+
+**One page, two tabs.** Both directions of the translator, side by side, because the point of the
+application is that the two are inverses.
+
+| Tab | Direction | Ends in |
+|-----|-----------|---------|
+| **837 → Model** | Upload an 837 file or a ZIP of them | A table |
+| **Model → 837** | Fill in a form, generate | A download button |
+
+Nothing else is a top-level destination. The Imported Bills Dashboard governance Feature 3 names is
+the 837 → Model table, not a third place.
+
+## Tab: Model → 837
 
 Formik (`useFormik`) for the generation form.
 
 | Control | Behaviour |
 |---------|-----------|
 | Number of bills | Dropdown, up to 500. The governed ceiling is 500 and the API returns 400 above it, so the control must not offer a number the server will refuse. |
-| Medical codes | Dropdown, **searchable, and scannable by top-level category**. Selecting a category selects everything under it: "500 cardiac bills" must be a two-interaction task, not fifteen. |
-| State | Dropdown. The selection governs the provider, which the server already does — jurisdiction state drives the NPI registry lookup and the synthetic fallback (ADR-012). |
+| Medical codes | Dropdown, **searchable, and scannable by top-level category**. Selecting a category selects everything under it: "500 cardiac bills" must be a two-interaction task, not fifteen. Fed by `GET /api/v1/codes`. |
+| State | Dropdown, fed by `GET /api/v1/jurisdictions`. The selection governs the provider, which the server already does — jurisdiction drives the NPI snapshot lookup. |
 
-Subscriber names are made up, and charges are the standard charge for the procedure. Both are
-already true server-side and neither is a client concern: the synthetic name list and the charge
-schedule live in `Translator.Generation`, and the charge fallback is deterministic (ADR-013).
+Subscriber names are made up and charges are standard for the procedure. Both are already true
+server-side; neither is a client concern.
 
-**Flow.** Creation is local first: the generated batch populates a React table on screen. From
-there, one button exports to CSV and one to 837.
+**Flow.** Generation is local-first: the batch populates a table on screen. From there one button
+exports CSV and one exports 837. The 837 export is `GET /api/v1/claims/export-zip`, a ZIP of one file
+per claim (ADR-017). CSV is a view of the table, not a governed artefact, and no 837 fidelity claim
+attaches to it.
 
-The 837 export is `GET /api/v1/claims/export-zip`, which returns a ZIP of one 837 file per claim
-(ADR-017). CSV is a client-side concern — it is a view of the table, not a governed artefact, and
-no 837 fidelity claim attaches to it.
+## Tab: 837 → Model
 
-## 837 to bill
-
-- Accepts a single 837 file or a batch. `POST /api/v1/claims/import` already takes either and
-  detects which by the payload's own ZIP signature rather than by filename.
-- Renders the result as a table, exportable to CSV.
+- Accepts a single 837 file or a batch. `POST /api/v1/claims/import` already takes either and detects
+  which from the payload's own ZIP signature rather than from a filename.
+- Renders the reconstructed claims as a table, exportable to CSV.
 - A rejected import applies nothing (ADR-022), so the error path shows the problem document's
   `detail` and leaves the table as it was. Those messages name the segment at fault (ADR-021), so
   they are worth surfacing verbatim rather than replacing with "import failed".
+
+## Reversibility, in the 837 → Model table
+
+A column in the imported table, verified **on demand per row** rather than for the whole batch.
+
+Not a third tab: the verdict is two booleans, and a separate destination would split a claim from its
+own result. Not eagerly for every row either — there is no bulk verify endpoint, so a batch summary
+would mean one request per claim, which is the anti-pattern ADR-023 cost a section to remove.
+
+**Only on the import tab.** On the generate tab we produced the claims ourselves, so a verdict there
+restates what the suite already proves byte-for-byte over the whole corpus. On the import tab an
+outside file arrived and the question is live.
+
+**What the column may claim, and what it may not.** The endpoint verifies *stored record → 837 →
+stored record*. The server never keeps the uploaded bytes, so a file with different delimiters, CRLF
+line endings or a different envelope can preserve every governed field and still not be byte-identical
+to what we emit.
+
+| Reported | Means |
+|----------|-------|
+| `RecordIsIdentical` | No governed field moved |
+| `EdiTextIsIdentical` | Our re-export is byte-for-byte our export |
+
+So the column must not say "your file round-trips unchanged". The two are shown separately, per
+`docs/GOVERNANCE-FRONTEND.md` §9, and `Differences[]` names the governed column that moved.
+
+*Noted for later, not MVP:* the client is the only party still holding the uploaded bytes. The
+strongest possible check — governance Section 4's `Import(837) → DB → Export() == 837` against the
+user's own file — is one only the client can perform.
+
+## Progress tracker — deferred
+
+Not built for now, at the project owner's direction.
+
+Recorded rather than dropped, because the reasoning matters if it comes back: the API is
+request/response and a 500-bill generation returns in about a second, so a tracker animating through
+invented stages would be the UI telling the user something it does not know. If the operations ever
+become genuinely long-running, this needs a real progress channel rather than a timer.
+
+## Downloads — deferred
+
+A download is a download: the browser takes the file and the page moves on. Keeping the artefact
+reachable afterwards is out of scope for the MVP.
+
+Noted so it is not re-proposed in the form it was first raised: a link *to the downloads folder*
+cannot be built. A page never learns the path the browser chose, and `file://` navigation is blocked
+from `https://`. If reachable downloads come back, the shape is a retained blob and its object URL,
+not a filesystem path.
 
 ## Example data, said out loud
 

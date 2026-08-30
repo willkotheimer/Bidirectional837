@@ -33,9 +33,13 @@ marker cites a finding this register does not define. The convention is ADR-011.
 | [FIND-017](#find-017) | Live NPI registry query was never answerable; fallback was permanent | High | Fixed | 6 | required |
 | [FIND-018](#find-018) | Latching fallback would disable a local source after one miss | Medium | Fixed | 6 | required |
 | [FIND-019](#find-019) | Seed reader documented an assumption the data outgrew | Medium | Fixed | 7 | required |
+| [FIND-020](#find-020) | Governed field names mangled on the wire since Section 2 | High | Fixed | 8 | required |
+| [FIND-021](#find-021) | The store lost DateTimeKind, so a persisted claim rendered differently | Medium | Fixed | 8 | required |
+| [FIND-022](#find-022) | A claim's representation depended on which route returned it | High | Fixed | 8 | required |
 
 A finding whose Guard reads `not applicable` is one no test yet holds shut. There are none at
-present: every recorded finding is named by a test that fails if it returns.
+present: every recorded finding is named by a test that fails if it returns. FIND-020 was recorded as Open while its guard
+existed and failed, which is what a finding under repair looks like here; it is now Fixed.
 
 Severity is judged by consequence to the governance Section 1 Reversibility Guarantee and to data
 correctness, not by effort to fix.
@@ -616,3 +620,116 @@ was. The finding stays **Mitigated** rather than closed, because its substance w
 the budget is still spent almost entirely on persistence and serialisation, which governance does not
 name, so a slower machine could still breach the end-to-end assertion while the governed requirement
 stays comfortably met. What has changed is that the headroom is no longer thin.
+
+## FIND-020
+
+**Every governed field name is mangled on the wire, and has been since the contract was published.**
+High. Open — the guard exists and fails; the fix is Section 8's GREEN. Discovered 2026-08-30 while
+drafting `docs/GOVERNANCE-FRONTEND.md`.
+
+`docs/api/swagger.json` declares the governed ASC X12 names. The application serves something else:
+
+| Contract publishes | Application serves |
+|--------------------|--------------------|
+| `CLM02_TotalClaimChargeAmount` | `clM02_TotalClaimChargeAmount` |
+| `BHT03_ClaimSubmitterTransactionId` | `bhT03_ClaimSubmitterTransactionId` |
+| `Loop2010AA_NM103_BillingProviderLastNameOrOrg` | `loop2010AA_NM103_BillingProviderLastNameOrOrg` |
+
+ASP.NET Core's default camelCase policy lowercases the leading character of a name, and on a name
+beginning with an acronym that produces `clM02_`, `bhT03_`, `hI01_2_`.
+
+*Why it matters:* governance Section 1 is explicit — "Attribute names across the database, DTOs, and
+React forms must reflect ASC X12 nomenclature ... If a field is named otherwise, it requires a
+documented mapping attribute linking it directly to its 837 segment counterpart." `clM02_` is not
+ASC X12 nomenclature and has no documented mapping. The database column is right, the entity is
+right, the DTO is right, the published contract is right, and the payload — the only one of them a
+client ever sees — is wrong.
+
+It is High rather than Medium because of what happens next. The React client is about to be written,
+governance binds *React forms* to the same names, and every component written against `clM02_` would
+carry the mangling into the frontend, where it would be far more work to remove than a serializer
+setting.
+
+*How it survived:* the conformance suite has checked routes and status codes since Section 2 and
+media types since FIND-016, and has never checked a field name. Worse, the existing API Theories
+*read* the mangled names — `claim.GetProperty("clM02_TotalClaimChargeAmount")` — so the suite encodes
+the defect and would fail if it were fixed. They are a record of the bug, not a guard against it.
+This is the third time in this build that a control was proven only at the layer that declares it
+(FIND-004, FIND-016), and the second time a test agreed with the code about a shared mistake
+(FIND-017).
+
+*Resolution:* serialise with the declared names rather than a naming policy, and correct the Theories
+that encode the mangled form. After that the governed name is identical in the column, the entity,
+the DTO, the contract, the payload and the React state, which is what Section 1 asks for.
+
+*Guard:* `ContractNamingTheories` — every property the contract publishes must appear in the served
+claim, no served property may be absent from the contract, and the governed names are additionally
+asserted literally, so a contract quietly edited to match a mangled payload would still fail.
+
+*Reportable as:* a naming rule stated in the first paragraph of the governance document, satisfied at
+four layers out of five, and broken at the only one that is externally visible.
+
+*Fixed 2026-08-30.* The naming policy is null, so every DTO serialises with the names it declares -
+governed columns and the catalogue and reversibility contracts alike, all of which the published
+document already spelled in PascalCase. Fixing it made two further defects visible, FIND-021 and
+FIND-022, neither of which could be seen while the payload disagreed with the contract.
+
+## FIND-021
+
+**The store lost `DateTimeKind`, so the same instant serialised two ways.**
+Medium. Fixed. Discovered 2026-08-30 by the round-trip journey Theory added at the project owner's
+request.
+
+`BHT04_TransactionSetCreationDate` was written as UTC and read back with `Kind` set to
+`Unspecified`, because SQLite has no timestamp type and EF Core does not restore it. A claim that had
+been through the store serialised as `2026-01-01T00:00:00`; the same claim before persistence
+serialised as `2026-01-01T00:00:00Z`.
+
+*Why it matters:* the instant is intact, so no 837 is wrong — the file carries a date and a time to
+the minute and no zone at all. What breaks is comparison. A client holding a generated claim and an
+imported one sees two different strings for one moment, and the two-tab UI exists precisely to put
+those side by side. An unmarked timestamp is also ambiguous to anyone who reads the payload without
+knowing the convention.
+
+*Resolution:* ADR-029. A value converter restores `Kind` on read, and converts a `Local` value on the
+way in because that is a real change of instant. This is ADR-004's rule in a different column.
+
+*Guard:* `RoundTripJourneyTheories.Bill_survives_the_journey_to_837_and_back_into_a_bill`, which
+compares every governed column of a generated claim against the same claim after it has crossed a
+837 file into a second host.
+
+*Reportable as:* a defect no unit test could have found. Both hosts were internally consistent; the
+difference only existed between them, and only a Theory that carried a claim from one to the other
+could see it.
+
+## FIND-022
+
+**A claim's representation depended on which route returned it.**
+High. Fixed. Discovered 2026-08-30, immediately after FIND-021, by the same Theory.
+
+`POST /api/v1/bills/batch-generate` returned the objects it had just generated.
+`POST /api/v1/claims/import` returned what the store held, having deliberately read it back. So the
+same claim came out as `"SV104_ServiceUnitCount": 2` from one route and `2.0000` from the other,
+because only the store applies the governed scale.
+
+*Why it matters, and why it is High:* this is FIND-014's residual risk arriving where it was
+predicted to. That entry recorded that nothing enforces the governed scale on an entity in memory,
+and that every path reaching the store or the wire normalises — but batch generation reached the wire
+*without* going through the store on the way out, so it did not. The consequence is worse than an
+inconsistent number: the client cannot compare a generated claim to an imported one, which is exactly
+what a two-tab translator UI does. A difference of representation would look like a mutation.
+
+It is also the FIND-001 and FIND-002 argument left half-applied. The import route reads back
+precisely because the store is the layer those defects were found in and a response built from what
+went in would hide a mutation the store introduced. The generate route had the same exposure and not
+the same protection.
+
+*Resolution:* batch generation reads back what it wrote, as import does. Both routes now serve what
+the store holds, so a claim has one representation.
+
+*Guard:* the same journey Theory, which now compares a generated claim against its re-imported self
+field by field, reading the field list from the published contract so a column added to the governed
+schema is compared without anyone remembering to add it.
+
+*Reportable as:* an inconsistency between two endpoints that each looked correct alone. Every test
+of either route passed; only a test that used both could see it.

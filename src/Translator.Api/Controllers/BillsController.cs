@@ -3,6 +3,7 @@ using Translator.Contracts.DTOs;
 using Translator.Domain.Persistence;
 using Translator.Generation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Translator.Api.Controllers;
 
@@ -89,6 +90,27 @@ public class BillsController : ControllerBase
             await context.SaveChangesAsync(cancellationToken);
         }
 
-        return StatusCode(StatusCodes.Status201Created, claims.Select(ClaimMapper.ToDto).ToList());
+        // PROVENANCE: FIND-022 - read back what was written, exactly as the import route does.
+        //
+        // Returning the generated objects made a claim's representation depend on which route
+        // produced it: a service unit count of 2 here and 2.0000 from import, because only the store
+        // applies the governed scale (FIND-014). The two-tab client compares generated claims against
+        // imported ones, so that difference is not cosmetic.
+        //
+        // It is also the FIND-001 and FIND-002 argument. The store is the layer those defects were
+        // found in, and a response assembled from what went in would report a mutation the store
+        // introduced as though it had not happened.
+        var identifiers = claims.Select(claim => claim.Id).ToList();
+
+        await using (var context = _store.CreateContext())
+        {
+            var stored = await context.Claims
+                .Include(claim => claim.LineItems)
+                .AsNoTracking()
+                .Where(claim => identifiers.Contains(claim.Id))
+                .ToListAsync(cancellationToken);
+
+            return StatusCode(StatusCodes.Status201Created, stored.Select(ClaimMapper.ToDto).ToList());
+        }
     }
 }

@@ -320,3 +320,61 @@ copyright, and both exclusions are asserted by `CatalogIntegrityTheories` rather
   would compile until the old assembly stopped being produced.
 - No behaviour changed. Recorded RED: 119 failed / 1902 passed, the failures being the naming rule
   itself. Recorded GREEN: see `docs/TDD-EVIDENCE.md`.
+
+### Frontend governance approved (2026-08-30)
+
+- `docs/GOVERNANCE-FRONTEND.md` was drafted at the project owner's request and approved by them the
+  same day. It is binding from that point. It governs the React client only, derives its authority
+  from the two clauses of `governance.txt` Section 1 that already bind the frontend, and cannot amend
+  `governance.txt` - departures from either remain ADRs.
+- Recorded alongside it: governance Feature 3's two acceptance criteria are both already met by
+  Section 5. User Story 3.2 asks for an automated test rather than a screen, and that test is green.
+  The word "Dashboard" appears only in the feature title and in User Story 3.1's "so that they
+  display on the Imported Bills Dashboard", which the 837 to Model tab satisfies. Surfacing the
+  per-claim reversibility verdict in the UI is therefore an open choice, not an unmet requirement.
+
+### Section 8 — Frontend governance, and the wire-naming defect it found (2026-08-30)
+
+- `docs/GOVERNANCE-FRONTEND.md` was drafted, approved and adopted (ADR-027). CORS is granted to the
+  development client and nowhere else (ADR-028). The marker convention now reaches `.ts` and `.tsx`,
+  so the client is inside the governance rather than beside it.
+- Three findings, and the section changed character twice as they appeared.
+
+**The bidirectional round-trip test, and what it caught.**
+
+The project owner asked for a single integration test carrying a bill out to an 837 and back, and
+offered the other direction as optional. Both were written. They found two defects within minutes of
+each other that the existing suite could not have found, and the reason is worth recording as much as
+the defects are.
+
+Every prior round-trip test measured one host against itself. `ReversibilityTheories` serialises and
+re-parses in memory; the API's reversibility check asks a host whether *its own* stored record
+survives export and re-import. Both are true and both are blind in the same way: a value handled
+identically in each direction satisfies them. So does a value that two endpoints of the same host
+disagree about, because no test used two endpoints.
+
+The journey Theory generates on one host, exports, imports into a second, and compares every governed
+column of the claim that arrived against the claim that left. That is the first test in this build
+that ever carried a claim across a boundary and looked back.
+
+It failed twice, immediately:
+
+| Field | Sent | Arrived | Cause |
+|-------|------|---------|-------|
+| `BHT04_TransactionSetCreationDate` | `2026-01-01T00:00:00Z` | `2026-01-01T00:00:00` | FIND-021 — SQLite has no timestamp type, so the store returned the same instant with its `Kind` lost |
+| `SV104_ServiceUnitCount` | `2` | `2.0000` | FIND-022 — batch generation returned the objects it made; import returned what the store held, and only the store applies the governed scale |
+
+Neither is visible from inside one host. Both hosts were internally consistent; the disagreement
+existed only between them. FIND-022 is the more serious: it is FIND-014's recorded residual risk
+arriving exactly where that entry predicted, and it meant a client could not compare a generated
+claim against an imported one — which is the single thing a two-tab translator UI is for. A
+difference in representation would have read as a mutation.
+
+The reverse direction, 837 to bill and back, passed on its first run. That is worth stating plainly
+rather than quietly: governance Section 4's roundtrip standard already held end to end through the
+published API, and had only ever been proven against the engines beneath it.
+
+- FIND-020 is fixed: the naming policy is null, so every DTO serialises with the name it declares.
+  The mangled names had been read by the conformance suite's own Theories since Section 2, which made
+  that suite a record of the defect rather than a guard against it. Fixing it is what made FIND-021
+  and FIND-022 visible at all.

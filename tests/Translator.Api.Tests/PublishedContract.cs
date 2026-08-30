@@ -14,6 +14,11 @@ public static class PublishedContract
     private static readonly Lazy<JsonDocument> Document = new(() =>
         JsonDocument.Parse(File.ReadAllText(Path.Combine(RepoRoot, "docs", "api", "swagger.json"))));
 
+    /// <summary>The published schema for a named component, so a test can read its declared shape.</summary>
+    public static JsonElement Schema(string schemaName) =>
+        Document.Value.RootElement
+            .GetProperty("components").GetProperty("schemas").GetProperty(schemaName);
+
     /// <summary>Every (method, path) operation the contract publishes.</summary>
     public static IEnumerable<object[]> Operations()
     {
